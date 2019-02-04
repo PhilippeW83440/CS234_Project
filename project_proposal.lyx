@@ -96,20 +96,24 @@
 \begin_body
 
 \begin_layout Title
-Reinforcement Learning with Hard Constraints for Autonomous Driving: project
- proposal
+Reinforcement Learning with Hard Constraints for Autonomous Driving: CS234
+ project proposal
 \end_layout
 
 \begin_layout Author
-Vaishali G Kulkarni, Philippe Weingertner, 
+Philippe Weingertner, Vaishali G Kulkarni
 \begin_inset Newline newline
 \end_inset
 
  
 \family typewriter
-vaishali@stanford.edu, pweinger@stanford.edu
+pweinger@stanford.edu,
 \family default
  
+\family typewriter
+vaishali@stanford.edu
+\family default
+
 \begin_inset Newline newline
 \end_inset
 
@@ -240,15 +244,43 @@ Propose a post DQN safety check.
 
  values for every possible actions, we want to exclude the actions that
  are unsafe, before deciding what action to take (before taking the 
-\begin_inset Formula $argmax_{a_{i}}$
+\begin_inset Formula $argmax_{a_{i}}\;Q(s,a_{i})$
 \end_inset
 
 ).
+ This type of approach is used in a paper from BMW Group by 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "inproceedings"
+literal "true"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Enumerate
 Modify the DQN training algorithm and especially the exploration process
- so that only safe actions are explored and considered.
+ so that only safe actions are explored.
+ Similar to 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Bouton2018uai"
+literal "true"
+
+\end_inset
+
+, the idea is to derive an exploration strategy that constrains the agent
+ to choose among actions that satisfy safety criteria.
+ Hence the search space of policies is restricted to a 
+\begin_inset Quotes eld
+\end_inset
+
+safe
+\begin_inset Quotes erd
+\end_inset
+
+ or safer subspace of policies.
 \end_layout
 
 \begin_layout Enumerate
@@ -273,7 +305,26 @@ Replace the RL objective
 \end_inset
 
  and study how RL algorithms like DQN should be modified to account for
- this new objective
+ this new objective.
+ In a recent paper from DeepMind from 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "bohez2019success"
+literal "true"
+
+\end_inset
+
+, this type of approach is applied to a realistic, energy-optimized robotic
+ locomotion task, using the Minitaur quadruped developed by 
+\begin_inset CommandInset href
+LatexCommand href
+name " Ghost Robotics"
+target "https://www.ghostrobotics.io/"
+literal "false"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Section
