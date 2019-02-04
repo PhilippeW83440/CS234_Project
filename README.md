@@ -4,8 +4,7 @@
   
 **Safe RL overview:**
 * A Comprehensive Survey on Safe Reinforcement Learning  
-  http://www.jmlr.org/papers/volume16/garcia15a/garcia15a.pdf  
-
+  http://www.jmlr.org/papers/volume16/garcia15a/garcia15a.pdf
 * https://las.inf.ethz.ch/files/ewrl18_SafeRL_tutorial.pdf
 * https://www.youtube.com/watch?v=saHMbn84V_s
 * https://medium.com/@harshitsikchi/towards-safe-reinforcement-learning-88b7caa5702e
