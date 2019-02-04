@@ -112,12 +112,13 @@ pweinger@stanford.edu,
  
 \family typewriter
 vaishali@stanford.edu
-\family default
+\end_layout
 
-\begin_inset Newline newline
-\end_inset
+\begin_layout Standard
+\align center
 
-
+\series bold
+Project Mentor: Ramtin Keramati
 \end_layout
 
 \begin_layout Section
@@ -167,7 +168,7 @@ literal "false"
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\text{ s.t. }c_{i}(s_{t})\leq C_{i}\:\forall i\in\left\llbracket 1,K\right\rrbracket 
+\text{ s.t. }lower\_bound(C_{i}(s_{t},a_{t}))\geq\text{Margin}_{i}\:\forall i\in\left\llbracket 1,K\right\rrbracket 
 \]
 
 \end_inset
@@ -176,11 +177,30 @@ literal "false"
 \end_layout
 
 \begin_layout Standard
-where the expectation corresponds to the statistical RL objective and 
-\begin_inset Formula $c_{i}$
+where the expectation corresponds to the statistical RL objective subject
+ to a set of safety constraints.
+ 
+\end_layout
+
+\begin_layout Standard
+We tackle the problem of safe control in physical systems where certain
+ quantities have to be kept constrained.
+ For an autonomous vehicle we must always maintain its distance from obstacles
+ above some margin.
+ But in fact the real state of the world is only partially observable and
+ the Driving Models of surrounding cars are not known exactly: so we are
+ dealing with uncertainty and our constraints are actually a set of random
+ variables 
+\begin_inset Formula $C_{i}$
 \end_inset
 
- correspond to hard safety constraints.
+ which we want to lower bound.
+ Note that in most of the references the constraints are only considered
+ in expectation via a constraint of type 
+\begin_inset Formula $J_{C_{i}}^{\pi}=E_{\pi}\left[C_{i}(s,a)\right]$
+\end_inset
+
+ whereas here we are interested in enforcing stronger constraints.
 \end_layout
 
 \begin_layout Section
@@ -201,7 +221,7 @@ literal "false"
  A vehicle has to drive from a point A to a point B as fast as possible,
  while avoiding other vehicles that are crossing its path and trying to
  minimize hard braking decisions.
- So it is a multi objectives task where efficiency, comfort and safety objective
+ So it is a multi-objectives task where efficiency, comfort and safety objective
 s have to be optimized.
  While in the previous project we studied the applicability of POMDPs solvers
  for decision making in a context of sensors uncertainty, we will deal here
@@ -299,7 +319,7 @@ Replace the RL objective
 
 \begin_inset Formula 
 \[
-\text{ s.t. }c_{i}(s_{t})\leq C_{i}\:\forall i\in\left\llbracket 1,K\right\rrbracket 
+\text{ s.t. }lower\_bound(C_{i}(s_{t},a_{t}))\geq\text{Margin}_{i}\:\forall i\in\left\llbracket 1,K\right\rrbracket 
 \]
 
 \end_inset
@@ -325,6 +345,7 @@ literal "false"
 \end_inset
 
 .
+ But the constraints were considered only in expectation.
 \end_layout
 
 \begin_layout Section
