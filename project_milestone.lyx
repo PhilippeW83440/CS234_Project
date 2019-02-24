@@ -210,9 +210,10 @@ Project Milestone Updates:
 \end_layout
 
 \begin_layout Itemize
-We will use a single hard constraint which is the min Time To Collision
- that is computed between the ego vehicle and the predicted trajectories
- of the surrounding vehicles.
+We will use a single hard constraint which is related to the min Time To
+ Collision that is computed between the ego vehicle and the predicted trajectori
+es of the surrounding vehicles.
+ This min TTC shall be greater or equal than a threshold margin.
 \end_layout
 
 \begin_layout Section
