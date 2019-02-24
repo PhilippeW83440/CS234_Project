@@ -203,6 +203,18 @@ We tackle the problem of safe control in physical systems where certain
  whereas here we are interested in enforcing stronger constraints.
 \end_layout
 
+\begin_layout Standard
+
+\series bold
+Project Milestone Updates:
+\end_layout
+
+\begin_layout Itemize
+We will use a single hard constraint which is the min Time To Collision
+ that is computed between the ego vehicle and the predicted trajectories
+ of the surrounding vehicles.
+\end_layout
+
 \begin_layout Section
 Background/Related Work
 \end_layout
@@ -418,8 +430,139 @@ literal "false"
  But the constraints were considered only in expectation.
 \end_layout
 
+\begin_layout Standard
+
+\series bold
+Project Milestone Updates:
+\end_layout
+
+\begin_layout Itemize
+We will focus on step 3 
+\end_layout
+
+\begin_layout Itemize
+The surrounding vehicles will move according to an 
+\begin_inset CommandInset href
+LatexCommand href
+name "IDM "
+target "https://en.wikipedia.org/wiki/Intelligent_driver_model"
+literal "false"
+
+\end_inset
+
+ driving model.
+ This driving model depends on 5 parameters.
+ The ego vehicle does not know (precisely) the parameters used by the surroundin
+g vehicles.
+ This is the main source of uncertainty.
+\end_layout
+
+\begin_layout Itemize
+In order to define the hard constraint, in a real use case (not simulated)
+ the ego vehicle shall estimate the Driving Model parameters of every surroundin
+g vehicle with some probability distribution to account for uncertainty.
+ Here in simulation and in the context of this project, we will use some
+ provided range of IDM parameters values: so the IDM model estimation is
+ emulated.
+ Then we will consider worst case scenarios leading to the smallest possible
+ Time To Collision and assess how robust we are againt different level of
+ uncertainties.
+\end_layout
+
+\begin_layout Itemize
+So the hard constraint will be 
+\begin_inset Formula $\text{min TTC }\geq10$
+\end_inset
+
+ where the Time To Collision is computed based on:
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+\begin_inset Formula $acceleration_{ego-vehicle}=\pi_{\theta}(s_{t})$
+\end_inset
+
+ which depends on the parameters of the Neural Network
+\end_layout
+
+\begin_layout Itemize
+Predicted trajectories of surrounding vehicles which depend on a set of
+ 5 IDM parameters per surrounding vehicle.
+ We will simulate the fact that these parameters are estimated by the ego
+ vehicle by providing range of values to the ego vehicle in the simulation
+ framework.
+ 
+\end_layout
+
+\begin_layout Itemize
+So the hard constraint will involve the parameters 
+\begin_inset Formula $\theta$
+\end_inset
+
+ of 
+\begin_inset Formula $\pi_{\theta}(s_{t})$
+\end_inset
+
+ such that min Time To Collision is above some threshold.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+In terms of implementing the hard constraint with Tensorflow we will most
+ probably leverage on the following code 
+\begin_inset CommandInset href
+LatexCommand href
+name "tensorflow_constrained_optimization"
+target "https://github.com/google-research/https://github.com/google-research/tensorflow_constrained_optimization"
+literal "false"
+
+\end_inset
+
+ from Google research.
+\end_layout
+
 \begin_layout Section
 Experimental Results
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Project Milestone Updates:
+\end_layout
+
+\begin_layout Itemize
+A github directory has been created for the project: 
+\begin_inset CommandInset href
+LatexCommand href
+name "CS234_Project"
+target "https://github.com/PhilippeW83440/CS234_Project"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+The legacy simulator code has been ported from Julia code (as used in CS238
+ project) to Python (for use in CS234 Project)
+\end_layout
+
+\begin_layout Itemize
+The simulator code has been upgraded so that the surrounding vehicles move
+ according to an 
+\begin_inset CommandInset href
+LatexCommand href
+name "IDM "
+target "https://en.wikipedia.org/wiki/Intelligent_driver_model"
+literal "false"
+
+\end_inset
+
+ driving model.
+ In previous CS238 project the surrounding vehicles were moving according
+ to a very simple Constant Velocity model.
 \end_layout
 
 \begin_layout Subsection
@@ -427,7 +570,7 @@ Simulator
 \end_layout
 
 \begin_layout Standard
-We will upgrade the Anti Collision Tests environment, 
+We are upgrading the Anti Collision Tests environment, 
 \begin_inset CommandInset href
 LatexCommand href
 name "ACT"
@@ -475,6 +618,62 @@ y metric (time to goal), and a comfort metric (number of hard braking decisions
  We want to enforce safety while not compromising too much efficiency or
  comfort: a safe AD vehicle that would use many regular hard braking decisions
  would not be acceptable and could even be dangerous for other vehicles.
+\end_layout
+
+\begin_layout Section
+Project Milestones Updates: Remaining Work / Next Steps
+\end_layout
+
+\begin_layout Itemize
+Establish a baseline with RL Policy Gradient algorithm trained on ACT simulator
+ framework.
+ Provide evaluation metrics results.
+\end_layout
+
+\begin_layout Itemize
+Meeting to be planned 
+\begin_inset Formula $5^{th}$
+\end_inset
+
+ or 
+\begin_inset Formula $6^{th}$
+\end_inset
+
+ of March with Vaishali, Ramtin, Philippe.
+ Philippe who is located in France will be in California these days.
+\end_layout
+
+\begin_layout Itemize
+Experiment with 
+\begin_inset CommandInset href
+LatexCommand href
+name "tensorflow_constrained_optimization"
+target "https://github.com/google-research/https://github.com/google-research/tensorflow_constrained_optimization"
+literal "false"
+
+\end_inset
+
+ from Google research on a simple hard constraint use case (e.g.
+ such that the weights of the Neural Network are in a specific range)
+\end_layout
+
+\begin_layout Itemize
+Implement code to compute the hard constraint 
+\begin_inset Formula $\text{ min TTC }\geq$
+\end_inset
+
+ some threshold.
+ In a first step just log how we would deviate from our goal by not enforcing
+ the hard constraint
+\end_layout
+
+\begin_layout Itemize
+Combine Policy Gradient algorithm with the Hard Constraint code during Policy
+ Gradient training
+\end_layout
+
+\begin_layout Itemize
+Compare results with and without enforcing the hard constraint
 \end_layout
 
 \begin_layout Standard

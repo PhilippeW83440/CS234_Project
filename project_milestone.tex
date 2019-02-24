@@ -87,6 +87,13 @@ that in most of the references the constraints are only considered
 in expectation via a constraint of type $J_{C_{i}}^{\pi}=E_{\pi}\left[C_{i}(s,a)\right]$
 whereas here we are interested in enforcing stronger constraints.
 
+\textbf{Project Milestone Updates:}
+\begin{itemize}
+\item We will use a single hard constraint which is the min Time To Collision
+that is computed between the ego vehicle and the predicted trajectories
+of the surrounding vehicles.
+\end{itemize}
+
 \section{Background/Related Work}
 
 In \textcite{inproceedings} a DQN network is used for tactical decision
@@ -159,12 +166,54 @@ robotic locomotion task, using the Minitaur quadruped developed by
 \href{https://www.ghostrobotics.io/}{ Ghost Robotics}. But the constraints
 were considered only in expectation.
 \end{enumerate}
+\textbf{Project Milestone Updates:}
+\begin{itemize}
+\item We will focus on step 3 
+\item The surrounding vehicles will move according to an \href{https://en.wikipedia.org/wiki/Intelligent_driver_model}{IDM }
+driving model. This driving model depends on 5 parameters. The ego
+vehicle does not know (precisely) the parameters used by the surrounding
+vehicles. This is the main source of uncertainty.
+\item In order to define the hard constraint, in a real use case (not simulated)
+the ego vehicle shall estimate the Driving Model parameters of every
+surrounding vehicle with some probability distribution to account
+for uncertainty. Here in simulation and in the context of this project,
+we will use some provided range of IDM parameters values: so the IDM
+model estimation is emulated. Then we will consider worst case scenarios
+leading to the smallest possible Time To Collision and assess how
+robust we are againt different level of uncertainties.
+\item So the hard constraint will be $\text{min TTC }\geq10$ where the
+Time To Collision is computed based on:
+\begin{itemize}
+\item $acceleration_{ego-vehicle}=\pi_{\theta}(s_{t})$ which depends on
+the parameters of the Neural Network
+\item Predicted trajectories of surrounding vehicles which depend on a set
+of 5 IDM parameters per surrounding vehicle. We will simulate the
+fact that these parameters are estimated by the ego vehicle by providing
+range of values to the ego vehicle in the simulation framework. 
+\item So the hard constraint will involve the parameters $\theta$ of $\pi_{\theta}(s_{t})$
+such that min Time To Collision is above some threshold.
+\end{itemize}
+\item In terms of implementing the hard constraint with Tensorflow we will
+most probably leverage on the following code \href{https://github.com/google-research/https://github.com/google-research/tensorflow_constrained_optimization}{tensorflow\_constrained\_optimization}
+from Google research.
+\end{itemize}
 
 \section{Experimental Results}
 
+\textbf{Project Milestone Updates:}
+\begin{itemize}
+\item A github directory has been created for the project: \href{https://github.com/PhilippeW83440/CS234_Project}{CS234\_Project}
+\item The legacy simulator code has been ported from Julia code (as used
+in CS238 project) to Python (for use in CS234 Project)
+\item The simulator code has been upgraded so that the surrounding vehicles
+move according to an \href{https://en.wikipedia.org/wiki/Intelligent_driver_model}{IDM }
+driving model. In previous CS238 project the surrounding vehicles
+were moving according to a very simple Constant Velocity model.
+\end{itemize}
+
 \subsection{Simulator}
 
-We will upgrade the Anti Collision Tests environment, \href{https://github.com/PhilippeW83440/ACT}{ACT},
+We are upgrading the Anti Collision Tests environment, \href{https://github.com/PhilippeW83440/ACT}{ACT},
 developed for a previous CS238 Stanford project. A vehicle has to
 drive from a point A to a point B as fast as possible, while avoiding
 other vehicles that are crossing its path and trying to minimize hard
@@ -192,6 +241,23 @@ while not compromising too much efficiency or comfort: a safe AD vehicle
 that would use many regular hard braking decisions would not be acceptable
 and could even be dangerous for other vehicles.
 
+\section{Project Milestones Updates: Remaining Work / Next Steps}
+\begin{itemize}
+\item Establish a baseline with RL Policy Gradient algorithm trained on
+ACT simulator framework. Provide evaluation metrics results.
+\item Meeting to be planned $5^{th}$ or $6^{th}$ of March with Vaishali,
+Ramtin, Philippe. Philippe who is located in France will be in California
+these days.
+\item Experiment with \href{https://github.com/google-research/https://github.com/google-research/tensorflow_constrained_optimization}{tensorflow\_constrained\_optimization}
+from Google research on a simple hard constraint use case (e.g. such
+that the weights of the Neural Network are in a specific range)
+\item Implement code to compute the hard constraint $\text{ min TTC }\geq$
+some threshold. In a first step just log how we would deviate from
+our goal by not enforcing the hard constraint
+\item Combine Policy Gradient algorithm with the Hard Constraint code during
+Policy Gradient training
+\item Compare results with and without enforcing the hard constraint
+\end{itemize}
 \nocite{*}
 \printbibliography
 
