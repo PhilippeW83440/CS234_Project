@@ -8,4 +8,4 @@
      <br>Anti Collision Tests
 </p>
   
-The source of uncertainty will be mainly related to other agents driving models: IDM driving models https://en.wikipedia.org/wiki/Intelligent_driver_model with parameters that are not known precisely.
+The source of uncertainty is mainly related to other agents driving models: IDM driving models https://en.wikipedia.org/wiki/Intelligent_driver_model with parameters that are not known precisely.
