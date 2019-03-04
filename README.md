@@ -1,5 +1,13 @@
 # CS234_Project
 
+**Spinning up**  
+https://blog.openai.com/spinning-up-in-deep-rl/  
+https://spinningup.openai.com/en/latest/  
+https://github.com/openai/spinningup  
+https://blog.openai.com/concrete-ai-safety-problems/  
+  
+https://github.com/yanpanlau/DDPG-Keras-Torcs  
+
 
   
 **Safe RL overview:**
