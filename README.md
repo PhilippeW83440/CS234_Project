@@ -7,6 +7,8 @@ https://github.com/openai/spinningup
 https://blog.openai.com/concrete-ai-safety-problems/  
   
 https://github.com/yanpanlau/DDPG-Keras-Torcs  
+https://medium.com/@scitator/run-skeleton-run-3rd-place-solution-for-nips-2017-learning-to-run-207f9cc341f8  
+  
 
 
   
