@@ -1,7 +1,7 @@
 
 # gym-act
 
-The [Anti Collision Tests (ACT) environment](https://github.com/PhilippeW83440/CS234_Project/tree/master/act-env) is a driver agent
+The [Anti Collision Tests (ACT) environment](https://github.com/PhilippeW83440/CS234_Project/tree/master/simulator) is a driver agent
 task featuring continuous state and action spaces.  
 The driver agent is pursuing multiple objectives:
 * Efficiency: time to goal shall be minimized
