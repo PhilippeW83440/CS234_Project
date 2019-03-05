@@ -18,7 +18,7 @@ pip install -e .
 ```
 # Usage
 
-```bash
+```python
 import gym_act
 
 env = gym.make("Act-v0")
