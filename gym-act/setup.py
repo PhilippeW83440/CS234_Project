@@ -9,5 +9,5 @@ setup(name='gym_act',
     license='MIT',
 )
 
-    keywords='autonomous driving simulation environment reinforcement learning'
-    install_requires=['gym','numpy', 'opencv-python', 'jupyter']
+keywords='autonomous driving simulation environment reinforcement learning'
+install_requires=['gym','numpy', 'opencv-python', 'jupyter']
