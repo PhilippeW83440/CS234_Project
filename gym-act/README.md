@@ -14,12 +14,16 @@ The driver agent is pursuing multiple objectives:
 # Installation
 
 ```bash
+git clone https://github.com/PhilippeW83440/CS234_Project.git
 cd gym-act
 pip install -e .
 ```
+
+
 # Usage
 
 ```python
+import gym
 import gym_act
 
 env = gym.make("Act-v0")
@@ -27,7 +31,8 @@ env = gym.make("Act-v0")
 done = False
 while not done:
     action = 0 # Your agent code here
-    obs, reward, done, _ = env.step(action)
+    obs, reward, done, info = env.step(action)
     img = env.render()
+    ...
 ```
 
