@@ -217,7 +217,7 @@ def draw_arrow(image, p, q, color, arrow_magnitude=5, thickness=1, line_type=4, 
 
 
 class ActEnv(gym.Env):
-    def __init__(self, nobjs=10, max_accel=2, dist_collision=10, reward_shaping=True):    
+    def __init__(self, nobjs=10, max_accel=2, dist_collision=10, reward_shaping=False):    
         self.nobjs = nobjs
         self.max_accel = max_accel
         self.dist_collision = dist_collision
