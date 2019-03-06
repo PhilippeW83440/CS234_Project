@@ -12,8 +12,8 @@ https://medium.com/@scitator/run-skeleton-run-3rd-place-solution-for-nips-2017-l
  
  
  **Implementing a custom gradient descent in Tensorflow**  
- https://stackoverflow.com/questions/39167070/implementing-gradient-descent-in-tensorflow-instead-of-using-the-one-provided-wi
-
+ https://stackoverflow.com/questions/39167070/implementing-gradient-descent-in-tensorflow-instead-of-using-the-one-provided-wi  
+ https://towardsdatascience.com/custom-optimizer-in-tensorflow-d5b41f75644a  
 
   
 **Safe RL overview:**
