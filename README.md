@@ -1,4 +1,5 @@
-# CS234_Project
+# CS234_Project  
+
 
 **Spinning up**  
 https://blog.openai.com/spinning-up-in-deep-rl/  
@@ -8,7 +9,10 @@ https://blog.openai.com/concrete-ai-safety-problems/
   
 https://github.com/yanpanlau/DDPG-Keras-Torcs  
 https://medium.com/@scitator/run-skeleton-run-3rd-place-solution-for-nips-2017-learning-to-run-207f9cc341f8  
-  
+ 
+ 
+ **Implementing a custom gradient descent in Tensorflow**  
+ https://stackoverflow.com/questions/39167070/implementing-gradient-descent-in-tensorflow-instead-of-using-the-one-provided-wi
 
 
   
