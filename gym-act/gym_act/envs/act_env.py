@@ -105,7 +105,7 @@ def get_smallest_TTC(s):
 
 class BasicDriverModel():
     # stationarity: 1 is very aggressive, 4 is not very aggressive
-    def __init__(self, stationarity=2.0, dt=0.2):
+    def __init__(self, stationarity=1000.0, dt=0.2):
         self.state = "SPEED_CONSTANT" # SACCEL SCONSTANT
         self.stationarity = stationarity # every 1, 2, 3 or 4 seconds
         self.accel = 0 # -1 0 1 random uniform on ax
@@ -268,7 +268,7 @@ class ActEnv(gym.Env):
             driver = BasicDriverModel()
             self.drivers.append(driver)
             
-        print(state)  
+        #print(state)  
         self.s = state
         
         return self.s
@@ -371,7 +371,7 @@ class ActEnv(gym.Env):
         self.steps += 1
         
         if self.dist_nearest_obj <= self.dist_collision or self.s[1] >= self.goal[1]:
-            print("done: dist_nearest_obj {}, y-ego {}".format(self.dist_nearest_obj, self.s[1]))
+            #print("done: dist_nearest_obj {}, y-ego {}".format(self.dist_nearest_obj, self.s[1]))
             done = True
             if self.steps_beyond_done > 0:
                 logger.warn("You are calling 'step()' even though this environment has already returned done = True. You should always call 'reset()' once you receive 'done = True' -- any further steps are undefined behavior.")
