@@ -1,5 +1,17 @@
 # CS234_Project  
 
+**Project install**  
+
+```bash
+git clone https://github.com/PhilippeW83440/CS234_Project.git
+cd CS234_Project
+pip install -r requirements.txt
+cd gym-act
+pip install -e .
+```
+Then check you can run the notebooks Tests_xxx.ipynb without error.  
+Mujoco is not required, so just disable Mujoco tests if you do not have a license.  
+
 
 **Spinning up**  
 https://blog.openai.com/spinning-up-in-deep-rl/  
