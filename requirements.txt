@@ -16,3 +16,4 @@ mpi4py
 cloudpickle
 psutil
 tqdm
+sklearn
