@@ -1,0 +1,18 @@
+# legacy from http://web.stanford.edu/class/cs234/assignment3/index.html
+#numpy==1.14.2
+#tensorflow==1.7.1
+gym==0.9.1
+scipy==1.2.0
+mujoco-py==0.5.7
+matplotlib==3.0.2
+
+# new requirements added specific to our CS234_Project
+# for gym_act
+opencv-python
+imageio
+# for spinup algos
+joblib
+mpi4py
+cloudpickle
+psutil
+tqdm
