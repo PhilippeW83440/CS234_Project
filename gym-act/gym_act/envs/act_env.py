@@ -106,7 +106,7 @@ def get_smallest_TTC(s):
 # most simple Driver Model
 class CvDriverModel():
     def __init__(self):
-        print("CV Driver Model")
+        #print("CV Driver Model")
         self.accel = 0.0
     def step(self):
         return self.accel
@@ -114,7 +114,7 @@ class CvDriverModel():
 class BasicDriverModel():
     # stationarity: 1 is very aggressive, 4 is not very aggressive
     def __init__(self, stationarity=1000.0, dt=0.2):
-        print("Basic Driver Model")
+        #print("Basic Driver Model")
         self.state = "SPEED_CONSTANT" # SACCEL SCONSTANT
         self.stationarity = stationarity # every 1, 2, 3 or 4 seconds
         self.accel = 0 # -1 0 1 random uniform on ax
@@ -141,7 +141,7 @@ class BasicDriverModel():
 
 class IntelligentDriverModel():
     def __init__(self, v_des = 29.0):
-        print("IDM Driver Model")
+        #print("IDM Driver Model")
         self.a = None # predicted acceleration
         self.sigma = 0 # optional stdev on top of the model, set to zero for deterministic behavior
         
@@ -227,7 +227,7 @@ def draw_arrow(image, p, q, color, arrow_magnitude=5, thickness=1, line_type=4, 
 
 
 class ActEnv(gym.Env):
-    def __init__(self, nobjs=10, max_accel=2, dist_collision=10, reward_shaping=False):    
+    def __init__(self, nobjs=2, max_accel=2, dist_collision=10, reward_shaping=True):    
         self.nobjs = nobjs
         self.max_accel = max_accel
         self.dist_collision = dist_collision
@@ -284,6 +284,17 @@ class ActEnv(gym.Env):
         self.s = state
         
         return self.s
+
+    def penalty(self, s):
+        smallest_TTC, smallest_TTC_obj = get_smallest_TTC(s)
+
+        if smallest_TTC > 10.0:
+            penalty = 0.0
+        else:
+            penalty = 10.0 - smallest_TTC
+
+        #print("PENALTY smallest_TTC {} smallest_TTC penalty {}".format(smallest_TTC, penalty))
+        return penalty
     
     def _reward(self, s, a, sp):
         # Keep track for visualization, plots ...
@@ -303,7 +314,7 @@ class ActEnv(gym.Env):
 
         # SAFETY related + terminal state (overwrite)
         if self.dist_nearest_obj <= self.dist_collision:
-            r_safety += -1000
+            r_safety += -10000
 
         # The faster we go in this test setup
         r_efficiency += a
