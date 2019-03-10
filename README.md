@@ -1,4 +1,17 @@
-# CS234_Project
+# CS234_Project  
+
+**Project install**  
+
+```bash
+git clone https://github.com/PhilippeW83440/CS234_Project.git
+cd CS234_Project
+pip install -r requirements.txt
+cd gym-act
+pip install -e .
+```
+Then check you can run the notebooks Tests_xxx.ipynb without error.  
+Mujoco is not required, so just disable Mujoco tests if you do not have a license.  
+
 
 **Spinning up**  
 https://blog.openai.com/spinning-up-in-deep-rl/  
@@ -8,8 +21,12 @@ https://blog.openai.com/concrete-ai-safety-problems/
   
 https://github.com/yanpanlau/DDPG-Keras-Torcs  
 https://medium.com/@scitator/run-skeleton-run-3rd-place-solution-for-nips-2017-learning-to-run-207f9cc341f8  
-  
-
+ 
+ 
+ **Implementing a custom gradient descent in Tensorflow**  
+ https://stackoverflow.com/questions/39167070/implementing-gradient-descent-in-tensorflow-instead-of-using-the-one-provided-wi  
+ https://towardsdatascience.com/custom-optimizer-in-tensorflow-d5b41f75644a  
+ https://github.com/yaroslavvb/stuff/tree/master/line_search_example  
 
   
 **Safe RL overview:**
