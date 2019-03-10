@@ -103,9 +103,18 @@ def get_smallest_TTC(s):
 # Driver Models
 ################
 
+# most simple Driver Model
+class CvDriverModel():
+    def __init__(self):
+        print("CV Driver Model")
+        self.accel = 0.0
+    def step(self):
+        return self.accel
+
 class BasicDriverModel():
     # stationarity: 1 is very aggressive, 4 is not very aggressive
     def __init__(self, stationarity=1000.0, dt=0.2):
+        print("Basic Driver Model")
         self.state = "SPEED_CONSTANT" # SACCEL SCONSTANT
         self.stationarity = stationarity # every 1, 2, 3 or 4 seconds
         self.accel = 0 # -1 0 1 random uniform on ax
@@ -125,13 +134,14 @@ class BasicDriverModel():
                 self.accel = 0
                 self.state = "SPEED_CONSTANT"
                 self.duration = 0
-        return self.accel, self.state
+        return self.accel
 
 # cf https://en.wikipedia.org/wiki/Intelligent_driver_model
 # cf https://github.com/sisl/AutoUrban.jl/blob/master/src/drivermodels/IDMDriver.jl
 
 class IntelligentDriverModel():
     def __init__(self, v_des = 29.0):
+        print("IDM Driver Model")
         self.a = None # predicted acceleration
         self.sigma = 0 # optional stdev on top of the model, set to zero for deterministic behavior
         
@@ -255,7 +265,8 @@ class ActEnv(gym.Env):
             vy = self.np_random.randint(low=0, high=5)
             obj = np.array([x, y, vx, vy])
             state = np.append(state, obj)
-            driver = BasicDriverModel()
+            #driver = BasicDriverModel()
+            driver = CvDriverModel()
             self.drivers.append(driver)
         
         for n in range(int(self.nobjs/2)):
@@ -265,7 +276,8 @@ class ActEnv(gym.Env):
             vy = - self.np_random.randint(low=0, high=5)
             obj = np.array([x, y, vx, vy])
             state = np.append(state, obj)
-            driver = BasicDriverModel()
+            #driver = BasicDriverModel()
+            driver = CvDriverModel()
             self.drivers.append(driver)
             
         #print(state)  
@@ -357,7 +369,7 @@ class ActEnv(gym.Env):
         idx = 4
         for n in range(self.nobjs):
             s_obj = self.s[idx:idx+4]
-            accel, state = self.drivers[n].step() # CALL driver model
+            accel = self.drivers[n].step() # CALL driver model
             #print("OBJ {} accel {} state {}".format(n, accel, state))
             a_obj = np.array([accel, 0.0])
             sp[idx:idx+4] = transition_ca(s_obj, a_obj)
