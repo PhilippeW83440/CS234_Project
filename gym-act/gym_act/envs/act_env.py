@@ -254,15 +254,15 @@ class ActEnv(gym.Env):
         self.drivers = []
         
         # x, y, vx, vy
-        self.start = np.array([100.0,   0.0,  0.0,  20.0], dtype=int)
-        self.goal  = np.array([100.0, 200.0, 0.0, 0.0], dtype=int)
+        self.start = np.array([100.0,   0.0,  0.0,  20.0], dtype=float)
+        self.goal  = np.array([100.0, 200.0, 0.0, 0.0], dtype=float)
         # states init
         state = ego = self.start
         for n in range(int(self.nobjs/2)):
-            x = self.np_random.randint(low=0, high=50)
-            y = self.np_random.randint(low=25, high=190)
-            vx = self.np_random.randint(low=10, high=25)
-            vy = self.np_random.randint(low=0, high=5)
+            x = float(self.np_random.randint(low=0, high=50))
+            y = float(self.np_random.randint(low=25, high=190))
+            vx = float(self.np_random.randint(low=10, high=25))
+            vy = float(self.np_random.randint(low=0, high=5))
             obj = np.array([x, y, vx, vy])
             state = np.append(state, obj)
             #driver = BasicDriverModel()
@@ -270,10 +270,10 @@ class ActEnv(gym.Env):
             self.drivers.append(driver)
         
         for n in range(int(self.nobjs/2)):
-            x = self.np_random.randint(low=150, high=200)
-            y = self.np_random.randint(low=25, high=190)
-            vx = - self.np_random.randint(low=10, high=25)
-            vy = - self.np_random.randint(low=0, high=5)
+            x = float(self.np_random.randint(low=150, high=200))
+            y = float(self.np_random.randint(low=25, high=190))
+            vx = - float(self.np_random.randint(low=10, high=25))
+            vy = - float(self.np_random.randint(low=0, high=5))
             obj = np.array([x, y, vx, vy])
             state = np.append(state, obj)
             #driver = BasicDriverModel()
@@ -407,4 +407,4 @@ class ActEnv(gym.Env):
         return self.s, reward, done, info
     
     def close(self):
-        return
+       return 
