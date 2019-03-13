@@ -11,6 +11,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+dt=0.2
+
+
 ########################
 # Some useful functions
 ########################
@@ -113,7 +116,7 @@ class CvDriverModel():
 
 class BasicDriverModel():
 	# stationarity: 1 is very aggressive, 4 is not very aggressive
-	def __init__(self, stationarity=1000.0, dt=0.2):
+	def __init__(self, stationarity=1000.0):
 		#print("Basic Driver Model")
 		self.state = "SPEED_CONSTANT" # SACCEL SCONSTANT
 		self.stationarity = stationarity # every 1, 2, 3 or 4 seconds
@@ -191,7 +194,7 @@ class IntelligentDriverModel():
 		return self.a
 
 # Transition with Constant Acceleration model
-def transition_ca(s, a, dt=0.2):
+def transition_ca(s, a):
 	Ts = np.matrix([[1.0, 0.0, dt,	0.0], 
 				[0.0, 1.0, 0.0, dt],
 				[0.0, 0.0, 1.0, 0.0],
