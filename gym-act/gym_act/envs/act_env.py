@@ -286,7 +286,7 @@ class ActEnv(gym.Env):
 		#print(state)  
 		self.s = state
 		
-		return self.s
+		return self._relative_coords(self.s)
 
 	def penalty(self, s):
 		smallest_TTC, smallest_TTC_obj = get_smallest_TTC(s)
@@ -382,6 +382,7 @@ class ActEnv(gym.Env):
 		for n in range(self.nobjs):
 			for i in range(4):
 				s_rel[(n+1)*4+i] = s_rel[(n+1)*4+i] - s_rel[i] 
+		s_rel[0:4] = 0
 		return s_rel
 		
 	#state, reward, done, info = env.step(action)
@@ -427,7 +428,7 @@ class ActEnv(gym.Env):
 			else:
 				info = "success"
 				
-		return self.s, reward, done, info
+		return self._relative_coords(self.s), reward, done, info
 	
 	def close(self):
 	   return 
