@@ -318,8 +318,8 @@ class ActEnv(gym.Env):
 		if self.reward_shaping and self.smallest_TTC <= 10.0:
 			r_safety = r_safety -10 - (10 - self.smallest_TTC) * 10 # between [-100, -10]
 
-		# SAFETY related + terminal state (overwrite)
-		if self.dist_nearest_obj <= self.dist_collision:
+		# SAFETY: collision or go backward
+		if self.dist_nearest_obj <= self.dist_collision or sp[3] < 0:
 			r_safety = r_safety - 1000
 
 		if sp[1] >= self.goal[1]:
@@ -415,7 +415,8 @@ class ActEnv(gym.Env):
 		assert self.s[2]>=0, "ego vx < 0"
 		#assert self.s[3]>=0, "ego vy < 0"
 		
-		if self.dist_nearest_obj <= self.dist_collision or self.s[1] >= self.goal[1]:
+		# if collision or goal reached or go backward
+		if self.dist_nearest_obj <= self.dist_collision or self.s[1] >= self.goal[1] or self.s[3]<0:
 			#print("done: dist_nearest_obj {}, y-ego {}".format(self.dist_nearest_obj, self.s[1]))
 			done = True
 			if self.steps_beyond_done > 0:
