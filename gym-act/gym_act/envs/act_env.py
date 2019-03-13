@@ -376,6 +376,13 @@ class ActEnv(gym.Env):
 		#img = cv2.resize(img, None, fx=20, fy=20)
 		#img = cv2.resize(img,(2500, 2500))
 		return img
+
+	def _relative_coords(self, s):
+		s_rel = np.copy(s)
+		for n in range(self.nobjs):
+			for i in range(4):
+				s_rel[(n+1)*4+i] = s_rel[(n+1)*4+i] - s_rel[i] 
+		return s_rel
 		
 	#state, reward, done, info = env.step(action)
 	def step(self, action):
