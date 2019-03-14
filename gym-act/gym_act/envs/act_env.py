@@ -234,11 +234,11 @@ class ActEnv(gym.Env):
 		print("ACT (Anti Collision Tests) with {} cars using {} driver model".format(nobjs, driver_model))
 		self.nobjs = nobjs
 		if driver_model == 'basic':
-			self.driver_model = BasicDriverModel()
+			self.driver_model = BasicDriverModel
 		elif driver_model == 'idm':
-			self.driver_model = IntelligentDriverModel()
+			self.driver_model = IntelligentDriverModel
 		else:
-			self.driver_model = CvDriverModel()
+			self.driver_model = CvDriverModel
 		self.max_accel = max_accel
 		self.dist_collision = dist_collision
 		self.reward_shaping = reward_shaping
@@ -275,7 +275,8 @@ class ActEnv(gym.Env):
 			vy = float(self.np_random.randint(low=0, high=5))
 			obj = np.array([x, y, vx, vy])
 			state = np.append(state, obj)
-			driver = self.driver_model
+			#driver = CvDriverModel()
+			driver = self.driver_model()
 			self.drivers.append(driver)
 		
 		for n in range(int(self.nobjs/2)):
@@ -285,7 +286,8 @@ class ActEnv(gym.Env):
 			vy = - float(self.np_random.randint(low=0, high=5))
 			obj = np.array([x, y, vx, vy])
 			state = np.append(state, obj)
-			driver = self.driver_model
+			#driver = CvDriverModel()
+			driver = self.driver_model()
 			self.drivers.append(driver)
 			
 		self.s = state
