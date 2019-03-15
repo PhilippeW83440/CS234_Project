@@ -102,6 +102,23 @@ def get_smallest_TTC(s):
 	
 	return smallest_TTC, smallest_TTC_obj
 
+def get_all_TTC(s):
+	radius = 15.0
+	ego = s[0:4]
+
+	all_TTC = []
+	idx = 4
+	for n in range(int((len(s)-4)/4)):
+		obj = s[idx:idx+4]
+		TTC = get_TTC(ego, obj, radius)
+		if TTC > 100.0:
+			TTC = 100.0
+		all_TTC.append(TTC)
+		idx += 4
+
+	return np.array(all_TTC)
+
+
 ################
 # Driver Models
 ################
@@ -230,7 +247,7 @@ def draw_arrow(image, p, q, color, arrow_magnitude=5, thickness=1, line_type=4, 
 
 
 class ActEnv(gym.Env):
-	def __init__(self, nobjs=2, driver_model='cv', max_accel=2, dist_collision=10, reward_shaping=False):	 
+	def __init__(self, nobjs=2, driver_model='cv', max_accel=2, dist_collision=10, reward_shaping=False, discrete=False):	 
 		print("ACT (Anti Collision Tests) with {} cars using {} driver model".format(nobjs, driver_model))
 		self.nobjs = nobjs
 		if driver_model == 'basic':
@@ -243,9 +260,13 @@ class ActEnv(gym.Env):
 		self.dist_collision = dist_collision
 		self.reward_shaping = reward_shaping
 		
-		self.action_space = spaces.Box(low=-self.max_accel, high=self.max_accel, shape=(1,))
+		if discrete is True:
+			self.action_space = spaces.Discrete(5)
+		else:
+			self.action_space = spaces.Box(low=-self.max_accel, high=self.max_accel, shape=(1,))
 		# 1+nobjs: x,y,vx,vy with x,y in [0,200] and vx,vy in [0,40]
 		self.observation_space = spaces.Box(low=0.0, high=200.0, shape=((1+nobjs)*4,))
+		#self.observation_space = spaces.Box(low=0.0, high=10.0, shape=(nobjs,)) # TTC for each car
 		
 		self.seed()
 		self.reset()
@@ -293,6 +314,7 @@ class ActEnv(gym.Env):
 		self.s = state
 		
 		return self._relative_coords(self.s)
+		#return get_all_TTC(self.s)
 
 	# we answer the question: what would be the penalty if we apply action on state
 	# but we do not store the new state sp
@@ -457,6 +479,8 @@ class ActEnv(gym.Env):
 				info = "success"
 				
 		return self._relative_coords(self.s), reward, done, info
+		#return np.array([self.penalty(self.s)]), reward, done, info
+		#return get_all_TTC(self.s), reward, done, info
 	
 	def close(self):
 	   return 
