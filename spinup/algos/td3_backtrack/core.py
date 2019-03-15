@@ -22,7 +22,7 @@ def count_vars(scope):
 
 
 # ... start new for backtrack ...
-def get_vars(scope1='', scope2=''):
+def get_vars2(scope1='', scope2=''):
     return [x for x in tf.trainable_variables() if scope1 in x.name and scope2 in x.name]
 
 def flat_concat(xs):

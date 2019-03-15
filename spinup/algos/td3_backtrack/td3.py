@@ -6,8 +6,9 @@ import numpy as np
 import tensorflow as tf
 import gym
 import time
-from spinup.algos.td3 import core
-from spinup.algos.td3.core import get_vars
+from spinup.algos.td3_backtrack import core
+from spinup.algos.td3_backtrack.core import get_vars
+from spinup.algos.td3_backtrack.core import get_vars2
 from spinup.utils.logx import EpochLogger
 
 
@@ -50,7 +51,7 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 		steps_per_epoch=5000, epochs=100, replay_size=int(1e6), gamma=0.99, 
 		polyak=0.995, pi_lr=1e-3, q_lr=1e-3, batch_size=100, start_steps=10000, 
 		act_noise=0.1, target_noise=0.2, noise_clip=0.5, policy_delay=2, 
-		max_ep_len=1000, logger_kwargs=dict(), save_freq=1):
+		max_ep_len=1000, lr_decay=0.9, logger_kwargs=dict(), save_freq=1):
 	"""
 
 	Args:
@@ -194,14 +195,14 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 	train_q_op = q_optimizer.minimize(q_loss, var_list=get_vars('main/q'))
 
 	# ................ start new for backtrack ................................#
-	pi_params = get_vars('pi', 'main')
+	pi_params = get_vars2('pi', 'main')
 	print(pi_params)
-	gradient = flat_grad(pi_loss, pi_params)
+	gradient = core.flat_grad(pi_loss, pi_params)
 	print(gradient) # More than 2 millions params ...
 	v_ph = tf.placeholder(tf.float32, shape=gradient.shape)
 	# Symbols for getting and setting params
-	get_pi_params = flat_concat(pi_params)
-	set_pi_params = assign_params_from_flat(v_ph, pi_params)
+	get_pi_params = core.flat_concat(pi_params)
+	set_pi_params = core.assign_params_from_flat(v_ph, pi_params)
 	
 	# ---------------------------------------------
 	# Custom optimizer for bactracking line search
@@ -213,7 +214,7 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 	bt_pi_optimizer = tf.train.GradientDescentOptimizer(learning_rate = bt_lr)
 	bt_train_pi_op = bt_pi_optimizer.minimize(pi_loss, var_list=get_vars('main/pi'))
 	bt_learning_rate = pi_lr # start lr
-	bt_previous_score = np.nan
+	bt_previous_score = - np.inf
 	# ................ end new for backtrack ................................#
 
 	# Polyak averaging for target variables
@@ -248,7 +249,7 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 			logger.store(TestEpRet=ep_ret, TestEpLen=ep_len)
 			score += ep_ret
 		if score < previous_score:
-			lr = lr / 2
+			lr = lr * lr_decay
 			print("Decay learning rate to {}".format(lr))
 		return score, lr
 
@@ -307,10 +308,23 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 
 				if j % policy_delay == 0:
 					# Delayed policy update
+
 					# modifs for backtracking line search
-					#outs = sess.run([pi_loss, train_pi_op, target_update], feed_dict)
+					# Check/enfore batch_size is always 1 for us ...
+					assert batch_size == 1
+					o = batch['obs1'][0]
+					old_a = get_action(o, 0)
 					old_params = sess.run(get_pi_params)
+					old_penalty = env.penalty(o)
+
+					#outs = sess.run([pi_loss, train_pi_op, target_update], feed_dict)
 					outs = sess.run([pi_loss, bt_train_pi_op, target_update], feed_dict)
+
+					new_a = get_action(o, 0)
+					new_penalty = env.penalty_sa(o, new_a)
+					print("TRAINING: observed state={}".format(o))
+					print("        : old a={} penalty={}".format(old_a, old_penalty))
+					print("        : new a={} penalty={}".format(new_a, new_penalty))
 					logger.store(LossPi=outs[0])
 
 			logger.store(EpRet=ep_ret, EpLen=ep_len)
@@ -325,7 +339,7 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 				logger.save_state({'env': env}, None)
 
 			# Test the performance of the deterministic version of the agent.
-			previous_score, bt_learning_rate = test_agent(previous_score, bt_learning_rate)
+			bt_previous_score, bt_learning_rate = test_agent(bt_previous_score, bt_learning_rate)
 
 			# Log info about epoch
 			logger.log_tabular('Epoch', epoch)
