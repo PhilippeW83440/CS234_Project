@@ -11,6 +11,8 @@ from spinup.algos.td3_backtrack.core import get_vars
 from spinup.algos.td3_backtrack.core import get_vars2
 from spinup.utils.logx import EpochLogger
 
+import copy
+
 
 class ReplayBuffer:
 	"""
@@ -51,7 +53,7 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 		steps_per_epoch=5000, epochs=100, replay_size=int(1e6), gamma=0.99, 
 		polyak=0.995, pi_lr=1e-3, q_lr=1e-3, batch_size=100, start_steps=10000, 
 		act_noise=0.1, target_noise=0.2, noise_clip=0.5, policy_delay=2, 
-		max_ep_len=1000, lr_decay=0.9, logger_kwargs=dict(), save_freq=1):
+		max_ep_len=1000, lr_decay=0.95, backtrack_iters=10, backtrack_decay=0.9, logger_kwargs=dict(), save_freq=1):
 	"""
 
 	Args:
@@ -210,11 +212,11 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 	# We will control the learning rate and schedule:
 	#	  decaying lr by 2 when TestEpRet no more improves on an epoch
 	#	  doing backtracking line search when PI updates is not safer than previous PI
-	bt_lr = tf.placeholder(dtype=tf.float32)
-	bt_pi_optimizer = tf.train.GradientDescentOptimizer(learning_rate = bt_lr)
-	bt_train_pi_op = bt_pi_optimizer.minimize(pi_loss, var_list=get_vars('main/pi'))
-	bt_learning_rate = pi_lr # start lr
-	bt_previous_score = - np.inf
+	sgd_lr = tf.placeholder(dtype=tf.float32)
+	sgd_pi_optimizer = tf.train.GradientDescentOptimizer(learning_rate = sgd_lr)
+	sgd_train_pi_op = sgd_pi_optimizer.minimize(pi_loss, var_list=get_vars('main/pi'))
+	sgd_learning_rate = pi_lr # start lr
+	previous_score = - np.inf
 	# ................ end new for backtrack ................................#
 
 	# Polyak averaging for target variables
@@ -237,7 +239,7 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 		a += noise_scale * np.random.randn(act_dim)
 		return np.clip(a, -act_limit, act_limit)
 
-	def test_agent(previous_score, lr, n=10):
+	def test_agent(prev_score, lr, n=10):
 		score = 0
 		for j in range(n):
 			o, r, d, ep_ret, ep_len = test_env.reset(), 0, False, 0, 0
@@ -248,7 +250,7 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 				ep_len += 1
 			logger.store(TestEpRet=ep_ret, TestEpLen=ep_len)
 			score += ep_ret
-		if score < previous_score:
+		if score < prev_score:
 			lr = lr * lr_decay
 			print("Decay learning rate to {}".format(lr))
 		return score, lr
@@ -300,7 +302,7 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 							 a_ph: batch['acts'],
 							 r_ph: batch['rews'],
 							 d_ph: batch['done'],
-							 bt_lr: bt_learning_rate
+							 sgd_lr: sgd_learning_rate
 							}
 				q_step_ops = [q_loss, q1, q2, train_q_op]
 				outs = sess.run(q_step_ops, feed_dict)
@@ -318,14 +320,47 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 					old_penalty = env.penalty_sa(o, old_a)
 
 					#outs = sess.run([pi_loss, train_pi_op, target_update], feed_dict)
-					outs = sess.run([pi_loss, bt_train_pi_op, target_update], feed_dict)
-
+					# do not update target network yet
+					sgd_outs = sess.run([pi_loss, sgd_train_pi_op], feed_dict)
 					new_a = get_action(o, 0) # should be different after PI update
 					new_penalty = env.penalty_sa(o, new_a)
-					print("TRAINING: observed state={}".format(o))
-					print("        : old a={} penalty={}".format(old_a, old_penalty))
-					print("        : new a={} penalty={}".format(new_a, new_penalty))
-					logger.store(LossPi=outs[0])
+					sgd_params = sess.run(get_pi_params)
+
+					if new_penalty > old_penalty: # Backtrack
+						print("BACKTRACKING: observed state={}".format(o))
+						print("BACKTRACKING: old a={} penalty={}".format(old_a, old_penalty))
+						backtrack_learning_rate = copy.copy(sgd_learning_rate)
+						for i in range(backtrack_iters): 
+							# cancel previous update
+							sess.run(set_pi_params, feed_dict={v_ph: old_params})
+							# reduce learning rate
+							backtrack_learning_rate *= backtrack_decay
+							feed_dict = {x_ph: batch['obs1'],
+										 x2_ph: batch['obs2'],
+										 a_ph: batch['acts'],
+										 r_ph: batch['rews'],
+										 d_ph: batch['done'],
+										 sgd_lr: backtrack_learning_rate
+										}
+							# TODO: it could be faster. No need to recompute gradients
+							backtracking_outs = sess.run([pi_loss, sgd_train_pi_op], feed_dict)
+							new_a = get_action(o, 0) # should be different after PI update
+							new_penalty = env.penalty_sa(o, new_a)
+							print("BACKTRACKING: new a={} penalty={}".format(new_a, new_penalty))
+							if new_penalty < old_penalty:
+								print("BACKTRACKING: improvement at iter {}".format(i))
+								logger.store(LossPi=backtracking_outs[0])
+								break
+
+							if i==backtrack_iters-1:
+								print("BACKTARCKING FAILED restore sgd_params")
+								sess.run(set_pi_params, feed_dict={v_ph: sgd_params})
+								logger.store(LossPi=sgd_outs[0])
+					else:
+						logger.store(LossPi=sgd_outs[0])
+					
+					# Update target PI network after potentially BACKTRACKING
+					sess.run([target_update], feed_dict)
 
 			logger.store(EpRet=ep_ret, EpLen=ep_len)
 			o, r, d, ep_ret, ep_len = env.reset(), 0, False, 0, 0
@@ -339,7 +374,7 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 				logger.save_state({'env': env}, None)
 
 			# Test the performance of the deterministic version of the agent.
-			bt_previous_score, bt_learning_rate = test_agent(bt_previous_score, bt_learning_rate)
+			previous_score, sgd_learning_rate = test_agent(previous_score, sgd_learning_rate)
 
 			# Log info about epoch
 			logger.log_tabular('Epoch', epoch)
