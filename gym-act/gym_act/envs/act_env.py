@@ -294,6 +294,26 @@ class ActEnv(gym.Env):
 		
 		return self._relative_coords(self.s)
 
+	# we answer the question: what would be the penalty if we apply action on state
+	# but we do not store the new state sp
+	# We just answer a WHAT IF question about penalty
+	def penalty_sa(self, state, action):
+		sp = np.copy(state)
+		
+		s = state[0:4]
+		a = np.array([0.0, action])
+		sp[0:4] = transition_ca(s, a)
+		
+		idx = 4
+		for n in range(self.nobjs):
+			s_obj = state[idx:idx+4]
+			accel = self.drivers[n].step() # CALL driver model
+			a_obj = np.array([accel, 0.0]) # always [0.0, 0.0] with CV driver model
+			sp[idx:idx+4] = transition_ca(s_obj, a_obj)
+			idx += 4
+
+		return self.penalty(sp)
+
 	def penalty(self, s):
 		smallest_TTC, smallest_TTC_obj = get_smallest_TTC(s)
 
