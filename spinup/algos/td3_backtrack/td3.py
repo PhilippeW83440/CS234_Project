@@ -313,14 +313,14 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 					# Check/enfore batch_size is always 1 for us ...
 					assert batch_size == 1
 					o = batch['obs1'][0]
-					old_a = get_action(o, 0)
 					old_params = sess.run(get_pi_params)
-					old_penalty = env.penalty(o)
+					old_a = get_action(o, 0)
+					old_penalty = env.penalty_sa(o, old_a)
 
 					#outs = sess.run([pi_loss, train_pi_op, target_update], feed_dict)
 					outs = sess.run([pi_loss, bt_train_pi_op, target_update], feed_dict)
 
-					new_a = get_action(o, 0)
+					new_a = get_action(o, 0) # should be different after PI update
 					new_penalty = env.penalty_sa(o, new_a)
 					print("TRAINING: observed state={}".format(o))
 					print("        : old a={} penalty={}".format(old_a, old_penalty))
