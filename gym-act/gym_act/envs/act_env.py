@@ -252,7 +252,7 @@ class ActEnv(gym.Env):
 	# if self.discrete
 	AVAIL_ACCEL = [-2., -1., 0., +1., +2.]
 
-	def __init__(self, nobjs=2, driver_model='cv', max_accel=2, dist_collision=10, reward_shaping=False, discrete=False):	 
+	def __init__(self, nobjs=2, driver_model='cv', max_accel=2, dist_collision=10, reward_shaping=True, discrete=False):	 
 		print("ACT (Anti Collision Tests) with {} cars using {} driver model".format(nobjs, driver_model))
 		self.nobjs = nobjs
 		self.discrete = discrete
@@ -374,7 +374,7 @@ class ActEnv(gym.Env):
 		r_safety = 0
 
 		if self.reward_shaping and self.smallest_TTC <= 10.0:
-			r_safety = r_safety -10 - (10 - self.smallest_TTC) * 10 # between [-100, -10]
+			r_safety = r_safety - (10 - self.smallest_TTC) * 10
 
 		# SAFETY: collision or go backward
 		if self.dist_nearest_obj <= self.dist_collision or sp[3] < 0:
