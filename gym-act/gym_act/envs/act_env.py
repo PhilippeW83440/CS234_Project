@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 dt=0.2
 
 
+
 ########################
 # Some useful functions
 ########################
@@ -247,9 +248,14 @@ def draw_arrow(image, p, q, color, arrow_magnitude=5, thickness=1, line_type=4, 
 
 
 class ActEnv(gym.Env):
+
+	# if self.discrete
+	AVAIL_ACCEL = [-2., -1., 0., +1., +2.]
+
 	def __init__(self, nobjs=2, driver_model='cv', max_accel=2, dist_collision=10, reward_shaping=False, discrete=False):	 
 		print("ACT (Anti Collision Tests) with {} cars using {} driver model".format(nobjs, driver_model))
 		self.nobjs = nobjs
+		self.discrete = discrete
 		if driver_model == 'basic':
 			self.driver_model = BasicDriverModel
 		elif driver_model == 'idm':
@@ -319,7 +325,11 @@ class ActEnv(gym.Env):
 	# we answer the question: what would be the penalty if we apply action on state
 	# but we do not store the new state sp
 	# We just answer a WHAT IF question about penalty
-	def penalty_sa(self, state, action):
+	def penalty_sa(self, state, a):
+		if self.discrete is True:
+			action = self.AVAIL_ACCEL[a]
+		else:
+			action = copy.copy(a)
 		sp = np.copy(state)
 		
 		s = state[0:4]
@@ -436,7 +446,12 @@ class ActEnv(gym.Env):
 		return s_rel
 		
 	#state, reward, done, info = env.step(action)
-	def step(self, action):
+	def step(self, a):
+		if self.discrete is True:
+			action = self.AVAIL_ACCEL[a]
+		else:
+			action = copy.copy(a)
+
 		reward = -1; done = False; info = {}		
 		sp = copy.copy(self.s)
 		
