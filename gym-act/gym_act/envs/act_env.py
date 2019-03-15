@@ -118,24 +118,24 @@ class BasicDriverModel():
 	# stationarity: 1 is very aggressive, 4 is not very aggressive
 	def __init__(self, stationarity=1000.0):
 		#print("Basic Driver Model")
-		self.state = "SPEED_CONSTANT" # SACCEL SCONSTANT
+		self.state = 'SPEED_CONSTANT' # SACCEL SCONSTANT
 		self.stationarity = stationarity # every 1, 2, 3 or 4 seconds
 		self.accel = 0 # -1 0 1 random uniform on ax
 		self.duration = 0
 		self.dt = dt
 		
 	def step(self):
-		if self.state == "SPEED_CONSTANT":
+		if self.state == 'SPEED_CONSTANT':
 			self.duration = self.duration + self.dt
 			if self.duration >= self.stationarity:
 				self.accel = np.random.randint(low=-1, high=2)
-				self.state = "SPEED_CHANGE"
+				self.state = 'SPEED_CHANGE'
 				self.duration = 0
-		elif self.state == "SPEED_CHANGE":
+		elif self.state == 'SPEED_CHANGE':
 			self.duration = self.duration + self.dt
 			if self.duration >= self.stationarity:
 				self.accel = 0
-				self.state = "SPEED_CONSTANT"
+				self.state = 'SPEED_CONSTANT'
 				self.duration = 0
 		return self.accel
 
@@ -230,8 +230,15 @@ def draw_arrow(image, p, q, color, arrow_magnitude=5, thickness=1, line_type=4, 
 
 
 class ActEnv(gym.Env):
-	def __init__(self, nobjs=2, max_accel=2, dist_collision=10, reward_shaping=False):	 
+	def __init__(self, nobjs=2, driver_model='cv', max_accel=2, dist_collision=10, reward_shaping=False):	 
+		print("ACT (Anti Collision Tests) with {} cars using {} driver model".format(nobjs, driver_model))
 		self.nobjs = nobjs
+		if driver_model == 'basic':
+			self.driver_model = BasicDriverModel
+		elif driver_model == 'idm':
+			self.driver_model = IntelligentDriverModel
+		else:
+			self.driver_model = CvDriverModel
 		self.max_accel = max_accel
 		self.dist_collision = dist_collision
 		self.reward_shaping = reward_shaping
@@ -268,8 +275,8 @@ class ActEnv(gym.Env):
 			vy = float(self.np_random.randint(low=0, high=5))
 			obj = np.array([x, y, vx, vy])
 			state = np.append(state, obj)
-			#driver = BasicDriverModel()
-			driver = CvDriverModel()
+			#driver = CvDriverModel()
+			driver = self.driver_model()
 			self.drivers.append(driver)
 		
 		for n in range(int(self.nobjs/2)):
@@ -279,11 +286,10 @@ class ActEnv(gym.Env):
 			vy = - float(self.np_random.randint(low=0, high=5))
 			obj = np.array([x, y, vx, vy])
 			state = np.append(state, obj)
-			#driver = BasicDriverModel()
-			driver = CvDriverModel()
+			#driver = CvDriverModel()
+			driver = self.driver_model()
 			self.drivers.append(driver)
 			
-		#print(state)  
 		self.s = state
 		
 		return self._relative_coords(self.s)
@@ -346,7 +352,8 @@ class ActEnv(gym.Env):
 		img.fill(255) # or img[:] = 255
 		cv2.putText(img, 'Anti Collision Tests', (pos_left, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
 		
-		x = self.s[0]; y = self.s[1]; vx = self.s[2]; vy = self.s[3]; v = int(math.sqrt(vx**2 + vy**2)*3.6)
+		x = int(round(self.s[0])); y = int(round(self.s[1]))
+		vx = int(round(self.s[2])); vy = int(round(self.s[3])); v = int(math.sqrt(vx**2 + vy**2)*3.6)
 		color = (0, 0, 255) # blue
 		cv2.circle(img, (x, y), 2, color, -1)
 		draw_arrow(img, (int(x), int(y)), (int(x+vx), int(y+vy)), color)		
@@ -358,7 +365,8 @@ class ActEnv(gym.Env):
 			else:
 				color = (0, 2500, 0) # green
 			idx = (i+1)*4
-			x = self.s[idx]; y = self.s[idx+1]; vx = self.s[idx+2]; vy = self.s[idx+3]; v = int(math.sqrt(vx**2 + vy**2)*3.6)
+			x = int(round(self.s[idx])); y = int(round(self.s[idx+1]));
+			vx = int(round(self.s[idx+2])); vy = int(round(self.s[idx+3])); v = int(math.sqrt(vx**2 + vy**2)*3.6)
 			cv2.circle(img, (x, y), 2, color, -1)
 			draw_arrow(img, (int(x), int(y)), (int(x+vx), int(y+vy)), color)		
 			cv2.putText(img, str(v) + ' kmh', (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.25, color_text)
