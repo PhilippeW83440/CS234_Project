@@ -129,7 +129,7 @@ class CvDriverModel():
 	def __init__(self):
 		#print("CV Driver Model")
 		self.accel = 0.0
-	def step(self):
+	def step(self, v):
 		return self.accel
 
 class BasicDriverModel():
@@ -142,7 +142,7 @@ class BasicDriverModel():
 		self.duration = 0
 		self.dt = dt
 		
-	def step(self):
+	def step(self, v):
 		if self.state == 'SPEED_CONSTANT':
 			self.duration = self.duration + self.dt
 			if self.duration >= self.stationarity:
@@ -176,7 +176,7 @@ class IntelligentDriverModel():
 		self.d_cmf = 2.0 # comfortable deceleration [m/s²] (positive)
 		self.d_max = 9.0 # maximum decelleration [m/s²] (positive)
 		
-	def step(self, v_ego, v_oth, headway):
+	def step(self, v_ego, v_oth=None, headway=np.Inf):
 		if v_oth is not None:
 			assert headway is not None and headway > 0, "v_oth None but headway > 0"
 			if headway > 0.0:
@@ -338,8 +338,9 @@ class ActEnv(gym.Env):
 		
 		idx = 4
 		for n in range(self.nobjs):
-			s_obj = state[idx:idx+4]
-			accel = self.drivers[n].step() # CALL driver model
+			s_obj = state[idx:idx+4] # x,y,vx,vy
+			v_obj = math.sqrt(self.state[idx+2]**2 + self.state[idx+3]**2)
+			accel = self.drivers[n].step(v_obj) # CALL driver model
 			a_obj = np.array([accel, 0.0]) # always [0.0, 0.0] with CV driver model
 			sp[idx:idx+4] = transition_ca(s_obj, a_obj)
 			idx += 4
@@ -468,7 +469,9 @@ class ActEnv(gym.Env):
 		idx = 4
 		for n in range(self.nobjs):
 			s_obj = self.s[idx:idx+4]
-			accel = self.drivers[n].step() # CALL driver model
+
+			v_obj = math.sqrt(self.s[idx+2]**2 + self.s[idx+3]**2)
+			accel = self.drivers[n].step(v_obj) # CALL driver model
 			#print("OBJ {} accel {} state {}".format(n, accel, state))
 			a_obj = np.array([accel, 0.0])
 			sp[idx:idx+4] = transition_ca(s_obj, a_obj)

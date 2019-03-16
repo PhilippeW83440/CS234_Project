@@ -104,8 +104,14 @@ class config_cheetah:
 
 class config_act:
 	def __init__(self, use_baseline):
-		self.env_name="Act-v0"
-		#self.env_name="Act10cv-v0"
+		# CV Driver Models
+		#self.env_name="Act-v0"
+		#self.env_name="Act10-v0"
+
+		# IDM Driver Models
+		#self.env_name="ActIdm-v0"
+		self.env_name="ActIdm10-v0"
+
 		self.record = False 
 		baseline_str = 'baseline' if use_baseline else 'no_baseline'
 
