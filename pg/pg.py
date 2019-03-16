@@ -17,6 +17,7 @@ from utils.general import get_logger, Progbar, export_plot
 from config import get_config
 
 import core
+from timeit import default_timer as timer
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env_name', required=True, type=str,
@@ -574,23 +575,48 @@ class PG(object):
 							self.sgd_lr_placeholder : self.sgd_lr,
 							self.advantage_placeholder : advantages }
 
-				#old_params = self.sess.run(self.get_pi_params)
-				#old_actions = self.sess.run(self.sampled_action, feed_dict={self.observation_placeholder : observations})
-				#old_penalty = env.penalty(observations, old_actions)
-				#print("len: {} {} {}".format(len(old_params), len(observations), len(old_actions)))
-				#print("old_penalty {}".format(old_penalty))
+				old_params = self.sess.run(self.get_pi_params)
 
-				#sgd_gradient = self.sess.run(self.gradient, feed_dict)
+				# 1 time is enough even if policy is stochastic: checks ok ... results are very consistent
+				start = timer()
+				old_actions = self.sess.run(self.sampled_action, feed_dict={self.observation_placeholder : observations})
+				old_penalty = env.penalty(observations, old_actions)
+				end = timer() # Takes 17 seconds on my setup
+				print("...Time to compute penalty: {}".format(end-start))
+				print("...len: {} {} {}".format(len(old_params), len(observations), len(old_actions)))
+				print("...old_penalty {}".format(old_penalty))
+
+				sgd_gradient = self.sess.run(self.gradient, feed_dict) # !!! DO NOT SWAP LINES !!!
 				self.sess.run(self.sgd_train_op, feed_dict)
 
-				#new_actions = self.sess.run(self.sampled_action, feed_dict={self.observation_placeholder : observations})
-				#new_penalty = env.penalty(observations, new_actions)
+				new_actions = self.sess.run(self.sampled_action, feed_dict={self.observation_placeholder : observations})
+				new_penalty = env.penalty(observations, new_actions)
+				print("...new_penalty {}".format(new_penalty))
 
-				#sgd_params = self.sess.run(self.get_pi_params)
-				#xxx_params = old_params + self.sgd_lr * sgd_gradient
-				#print("new_penalty {}".format(new_penalty))
-				#print(np.linalg.norm(xxx_params - sgd_params, ord=2))
-				#assert 2==1
+				sgd_params = self.sess.run(self.get_pi_params)
+				xxx_params = old_params - self.sgd_lr * sgd_gradient
+				print(np.linalg.norm(xxx_params - sgd_params, ord=2))
+				assert 2==1 # checks ongoing
+
+				if new_penalty > old_penalty:
+					start = timer()
+					backtrack_lr = copy.copy(self.sgd_lr)
+					for i in range(self.config.backtrack_iters):
+						backtrack_lr *= self.config.backtrack_decay
+						self.sess.run(self.set_pi_params, feed_dict={self.v_ph: old_params - backtrack_lr * sgd_gradient})
+						new_actions = self.sess.run(self.sampled_action, feed_dict={self.observation_placeholder : observations})
+						new_penalty = env.penalty(observations, new_actions)
+
+						if new_penalty < old_penalty:
+							print("BACKTRACKING: improvement at iter {} new_penalty={} old_penalty={}".format(i, new_penalty, old_penalty))
+							break
+
+						if i==self.config.backtrack_iters-1:
+							# Nothing better found during backtracking, restore sgd_params
+							self.sess.run(self.set_pi_params, feed_dict={self.v_ph: sgd_params })
+					end = timer()
+					print("...Backtracking Time: {}".format(end-start))
+
 			else:
 				self.sess.run(self.train_op, feed_dict={
 											self.observation_placeholder : observations,

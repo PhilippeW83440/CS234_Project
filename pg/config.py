@@ -140,6 +140,10 @@ class config_act:
 		self.layer_size				= 32
 		self.activation				= tf.nn.relu 
 
+		# parameters for backtracking line search
+		self.backtrack_iters = 5
+		self.backtrack_decay = 0.8
+
 		# since we start new episodes for each batch
 		assert self.max_ep_len <= self.batch_size
 		if self.max_ep_len < 0:
