@@ -327,6 +327,7 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 
 					#outs = sess.run([pi_loss, train_pi_op, target_update], feed_dict)
 					# do not update target network yet
+					sgd_gradient = sess.run(gradient, feed_dict) # !!! DO NOT SWAP LINES !!!
 					sgd_outs = sess.run([pi_loss, sgd_train_pi_op], feed_dict)
 
 					new_actions = get_actions(states)
@@ -334,33 +335,23 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 
 					sgd_params = sess.run(get_pi_params)
 
-					#if new_penalty > 0:
-					#	print("HARD CONSTAINT VIOLATION: penalty={}".format(new_penalty))
+					#xxx_params = old_params - sgd_learning_rate * sgd_gradient
+					#print(np.linalg.norm(xxx_params - sgd_params, ord=2))
 
 					if new_penalty > old_penalty: # Backtrack
 						#print("BACKTRACKING: START new_penalty={} old_penalty={}".format(new_penalty, old_penalty))
 						backtrack_learning_rate = copy.copy(sgd_learning_rate)
-						for i in range(backtrack_iters): 
-							# cancel previous update
-							sess.run(set_pi_params, feed_dict={v_ph: old_params})
+						for i in range(backtrack_iters):
 							# reduce learning rate
 							backtrack_learning_rate *= backtrack_decay
-							feed_dict = {x_ph: batch['obs1'],
-										 x2_ph: batch['obs2'],
-										 a_ph: batch['acts'],
-										 r_ph: batch['rews'],
-										 d_ph: batch['done'],
-										 sgd_lr: backtrack_learning_rate
-										}
-							# TODO: it could be faster. No need to recompute gradients
-							backtracking_outs = sess.run([pi_loss, sgd_train_pi_op], feed_dict)
-
+							sess.run(set_pi_params, feed_dict={v_ph: old_params - backtrack_learning_rate * sgd_gradient})
 							new_actions = get_actions(states)
 							new_penalty = env.penalty(states, new_actions)
 
 							if new_penalty < old_penalty:
 								print("BACKTRACKING: improvement at iter {} new_penalty={} old_penalty={}".format(i, new_penalty, old_penalty))
-								logger.store(LossPi=backtracking_outs[0])
+								#logger.store(LossPi=backtracking_outs[0])
+								logger.store(LossPi=sess.run(pi_loss, feed_dict))
 								break
 
 							if i==backtrack_iters-1:
