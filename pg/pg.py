@@ -569,13 +569,30 @@ class PG(object):
 				self.update_baseline(returns, observations)
 
 			if self.config.use_sgd is True:
-				self.sess.run(self.train_op, feed_dict={
-											self.observation_placeholder : observations,
-											self.action_placeholder : actions,
-											self.sgd_lr_placeholder : self.sgd_lr,
-											self.advantage_placeholder : advantages})
+				feed_dict={ self.observation_placeholder : observations,
+							self.action_placeholder : actions,
+							self.sgd_lr_placeholder : self.sgd_lr,
+							self.advantage_placeholder : advantages }
+
+				#old_params = self.sess.run(self.get_pi_params)
+				#old_actions = self.sess.run(self.sampled_action, feed_dict={self.observation_placeholder : observations})
+				#old_penalty = env.penalty(observations, old_actions)
+				#print("len: {} {} {}".format(len(old_params), len(observations), len(old_actions)))
+				#print("old_penalty {}".format(old_penalty))
+
+				#sgd_gradient = self.sess.run(self.gradient, feed_dict)
+				self.sess.run(self.sgd_train_op, feed_dict)
+
+				#new_actions = self.sess.run(self.sampled_action, feed_dict={self.observation_placeholder : observations})
+				#new_penalty = env.penalty(observations, new_actions)
+
+				#sgd_params = self.sess.run(self.get_pi_params)
+				#xxx_params = old_params + self.sgd_lr * sgd_gradient
+				#print("new_penalty {}".format(new_penalty))
+				#print(np.linalg.norm(xxx_params - sgd_params, ord=2))
+				#assert 2==1
 			else:
-				self.sess.run(self.sgd_train_op, feed_dict={
+				self.sess.run(self.train_op, feed_dict={
 											self.observation_placeholder : observations,
 											self.action_placeholder : actions,
 											self.advantage_placeholder : advantages})

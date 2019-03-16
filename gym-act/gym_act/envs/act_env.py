@@ -339,7 +339,7 @@ class ActEnv(gym.Env):
 		idx = 4
 		for n in range(self.nobjs):
 			s_obj = state[idx:idx+4] # x,y,vx,vy
-			v_obj = math.sqrt(self.state[idx+2]**2 + self.state[idx+3]**2)
+			v_obj = math.sqrt(state[idx+2]**2 + state[idx+3]**2)
 			accel = self.drivers[n].step(v_obj) # CALL driver model
 			a_obj = np.array([accel, 0.0]) # always [0.0, 0.0] with CV driver model
 			sp[idx:idx+4] = transition_ca(s_obj, a_obj)
