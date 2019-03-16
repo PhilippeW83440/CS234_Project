@@ -53,7 +53,7 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 		steps_per_epoch=5000, epochs=100, replay_size=int(1e6), gamma=0.99, 
 		polyak=0.995, pi_lr=1e-3, q_lr=1e-3, batch_size=100, start_steps=10000, 
 		act_noise=0.1, target_noise=0.2, noise_clip=0.5, policy_delay=2, 
-		max_ep_len=1000, lr_decay=0.95, backtrack_iters=10, backtrack_decay=0.9, logger_kwargs=dict(), save_freq=1):
+		max_ep_len=1000, lr_decay=0.95, backtrack_iters=10, backtrack_decay=0.8, logger_kwargs=dict(), save_freq=1):
 	"""
 
 	Args:
@@ -239,6 +239,12 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 		a += noise_scale * np.random.randn(act_dim)
 		return np.clip(a, -act_limit, act_limit)
 
+	def get_actions(o):
+		#a = sess.run(pi, feed_dict={x_ph: o.reshape(1,-1)})
+		a = sess.run(pi, feed_dict={x_ph: o})
+		return np.clip(a, -act_limit, act_limit)
+
+
 	def test_agent(prev_score, lr, n=10):
 		score = 0
 		for j in range(n):
@@ -313,22 +319,26 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 
 					# modifs for backtracking line search
 					# Check/enfore batch_size is always 1 for us ...
-					assert batch_size == 1
-					o = batch['obs1'][0]
 					old_params = sess.run(get_pi_params)
-					old_a = get_action(o, 0)
-					old_penalty = env.penalty_sa(o, old_a)
+					states = batch['obs1']
+
+					old_actions = get_actions(states)
+					old_penalty = env.penalty(states, old_actions)
 
 					#outs = sess.run([pi_loss, train_pi_op, target_update], feed_dict)
 					# do not update target network yet
 					sgd_outs = sess.run([pi_loss, sgd_train_pi_op], feed_dict)
-					new_a = get_action(o, 0) # should be different after PI update
-					new_penalty = env.penalty_sa(o, new_a)
+
+					new_actions = get_actions(states)
+					new_penalty = env.penalty(states, new_actions)
+
 					sgd_params = sess.run(get_pi_params)
 
+					#if new_penalty > 0:
+					#	print("HARD CONSTAINT VIOLATION: penalty={}".format(new_penalty))
+
 					if new_penalty > old_penalty: # Backtrack
-						print("BACKTRACKING: observed state={}".format(o))
-						print("BACKTRACKING: old a={} penalty={}".format(old_a, old_penalty))
+						#print("BACKTRACKING: START new_penalty={} old_penalty={}".format(new_penalty, old_penalty))
 						backtrack_learning_rate = copy.copy(sgd_learning_rate)
 						for i in range(backtrack_iters): 
 							# cancel previous update
@@ -344,16 +354,16 @@ def td3(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 										}
 							# TODO: it could be faster. No need to recompute gradients
 							backtracking_outs = sess.run([pi_loss, sgd_train_pi_op], feed_dict)
-							new_a = get_action(o, 0) # should be different after PI update
-							new_penalty = env.penalty_sa(o, new_a)
-							print("BACKTRACKING: new a={} penalty={}".format(new_a, new_penalty))
+
+							new_actions = get_actions(states)
+							new_penalty = env.penalty(states, new_actions)
+
 							if new_penalty < old_penalty:
-								print("BACKTRACKING: improvement at iter {}".format(i))
+								print("BACKTRACKING: improvement at iter {} new_penalty={} old_penalty={}".format(i, new_penalty, old_penalty))
 								logger.store(LossPi=backtracking_outs[0])
 								break
 
 							if i==backtrack_iters-1:
-								print("BACKTARCKING FAILED restore sgd_params")
 								sess.run(set_pi_params, feed_dict={v_ph: sgd_params})
 								logger.store(LossPi=sgd_outs[0])
 					else:

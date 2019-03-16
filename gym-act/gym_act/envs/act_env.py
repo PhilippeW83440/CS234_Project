@@ -344,9 +344,9 @@ class ActEnv(gym.Env):
 			sp[idx:idx+4] = transition_ca(s_obj, a_obj)
 			idx += 4
 
-		return self.penalty(sp)
+		return self.penalty_s(sp)
 
-	def penalty(self, s):
+	def penalty_s(self, s):
 		smallest_TTC, smallest_TTC_obj = get_smallest_TTC(s)
 
 		if smallest_TTC > 10.0:
@@ -355,6 +355,12 @@ class ActEnv(gym.Env):
 			penalty = 10.0 - smallest_TTC
 
 		#print("PENALTY smallest_TTC {} smallest_TTC penalty {}".format(smallest_TTC, penalty))
+		return penalty
+
+	def penalty(self, states, actions):
+		penalty = 0
+		for s,a in zip(states, actions):
+			penalty += self.penalty_sa(s,a)
 		return penalty
 	
 	def _reward(self, s, a, sp):
@@ -494,7 +500,7 @@ class ActEnv(gym.Env):
 				info = "success"
 				
 		return self._relative_coords(self.s), reward, done, info
-		#return np.array([self.penalty(self.s)]), reward, done, info
+		#return np.array([self.penalty_s(self.s)]), reward, done, info
 		#return get_all_TTC(self.s), reward, done, info
 	
 	def close(self):
