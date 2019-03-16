@@ -16,6 +16,8 @@ import inspect
 from utils.general import get_logger, Progbar, export_plot
 from config import get_config
 
+import core
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--env_name', required=True, type=str,
 										choices=['cartpole', 'pendulum', 'cheetah', 'act'])
@@ -260,6 +262,22 @@ class PG(object):
 		loss = tf.losses.mean_squared_error(labels=self.baseline_target_placeholder, predictions=self.baseline)
 		self.update_baseline_op = tf.train.AdamOptimizer(self.lr).minimize(loss)
 		#######################################################
+	
+	def add_backtracking(self, pi_name='policy_network'):
+		self.pi_params = core.get_vars(scope=pi_name)
+		print(self.pi_params)
+		self.gradient = core.flat_grad(self.loss, self.pi_params)
+		print(self.gradient)
+		self.v_ph = tf.placeholder(tf.float32, shape=self.gradient.shape)
+
+		# Symbols for getting and setting params
+		self.get_pi_params = core.flat_concat(self.pi_params)
+		self.set_pi_params = core.assign_params_from_flat(self.v_ph, self.pi_params)
+
+		self.sgd_lr_placeholder = tf.placeholder(dtype=tf.float32)
+		sgd_optimizer = tf.train.GradientDescentOptimizer(learning_rate = self.sgd_lr_placeholder)
+		self.sgd_train_op = sgd_optimizer.minimize(self.loss, var_list=core.get_vars(scope=pi_name))
+		self.sgd_lr = self.lr # start lr
 
 	def build(self):
 		"""
@@ -281,6 +299,8 @@ class PG(object):
 		# add baseline
 		if self.config.use_baseline:
 			self.add_baseline_op()
+
+		self.add_backtracking(pi_name='policy_network')
 
 	def initialize(self):
 		"""
@@ -547,10 +567,18 @@ class PG(object):
 			# run training operations
 			if self.config.use_baseline:
 				self.update_baseline(returns, observations)
-			self.sess.run(self.train_op, feed_dict={
-										self.observation_placeholder : observations,
-										self.action_placeholder : actions,
-										self.advantage_placeholder : advantages})
+
+			if self.config.use_sgd is True:
+				self.sess.run(self.train_op, feed_dict={
+											self.observation_placeholder : observations,
+											self.action_placeholder : actions,
+											self.sgd_lr_placeholder : self.sgd_lr,
+											self.advantage_placeholder : advantages})
+			else:
+				self.sess.run(self.sgd_train_op, feed_dict={
+											self.observation_placeholder : observations,
+											self.action_placeholder : actions,
+											self.advantage_placeholder : advantages})
 
 			# tf stuff
 			if (t % self.config.summary_freq == 0):

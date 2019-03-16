@@ -3,6 +3,7 @@ import tensorflow as tf
 class config_cartpole:
 	def __init__(self, use_baseline):
 		self.env_name="CartPole-v0"
+		self.use_sgd = False
 		self.record = True 
 		baseline_str = 'baseline' if use_baseline else 'no_baseline'
 
@@ -37,6 +38,7 @@ class config_cartpole:
 class config_pendulum:
 	def __init__(self, use_baseline):
 		self.env_name="InvertedPendulum-v1"
+		self.use_sgd = False
 		self.record = True 
 		baseline_str = 'baseline' if use_baseline else 'no_baseline'
 
@@ -71,6 +73,7 @@ class config_pendulum:
 class config_cheetah:
 	def __init__(self, use_baseline):
 		self.env_name="HalfCheetah-v1"
+		self.use_sgd = False
 		self.record = True 
 		baseline_str = 'baseline' if use_baseline else 'no_baseline'
 
@@ -107,11 +110,10 @@ class config_act:
 		# CV Driver Models
 		#self.env_name="Act-v0"
 		#self.env_name="Act10-v0"
-
 		# IDM Driver Models
 		#self.env_name="ActIdm-v0"
 		self.env_name="ActIdm10-v0"
-
+		self.use_sgd = True
 		self.record = False 
 		baseline_str = 'baseline' if use_baseline else 'no_baseline'
 
