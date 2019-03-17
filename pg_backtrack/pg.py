@@ -18,6 +18,7 @@ from config import get_config
 
 import core
 from timeit import default_timer as timer
+import copy
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env_name', required=True, type=str,
@@ -580,6 +581,10 @@ class PG(object):
 				# 1 time is enough even if policy is stochastic: checks ok ... results are very consistent
 				start = timer()
 				old_actions = self.sess.run(self.sampled_action, feed_dict={self.observation_placeholder : observations})
+				end = timer() # Takes 17 seconds on my setup
+				print("...Time to sample actions: {}".format(end-start))
+
+				start = timer()
 				old_penalty = env.penalty(observations, old_actions)
 				end = timer() # Takes 17 seconds on my setup
 				print("...Time to compute penalty: {}".format(end-start))
@@ -594,9 +599,10 @@ class PG(object):
 				print("...new_penalty {}".format(new_penalty))
 
 				sgd_params = self.sess.run(self.get_pi_params)
-				xxx_params = old_params - self.sgd_lr * sgd_gradient
-				print(np.linalg.norm(xxx_params - sgd_params, ord=2))
-				assert 2==1 # checks ongoing
+
+				#xxx_params = old_params - self.sgd_lr * sgd_gradient
+				#print(np.linalg.norm(xxx_params - sgd_params, ord=2))
+				#assert 2==1 # checks ongoing
 
 				if new_penalty > old_penalty:
 					start = timer()
@@ -606,6 +612,7 @@ class PG(object):
 						self.sess.run(self.set_pi_params, feed_dict={self.v_ph: old_params - backtrack_lr * sgd_gradient})
 						new_actions = self.sess.run(self.sampled_action, feed_dict={self.observation_placeholder : observations})
 						new_penalty = env.penalty(observations, new_actions)
+						print("...BACKTRACKING new_penalty {}".format(new_penalty))
 
 						if new_penalty < old_penalty:
 							print("BACKTRACKING: improvement at iter {} new_penalty={} old_penalty={}".format(i, new_penalty, old_penalty))
