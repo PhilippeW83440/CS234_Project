@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- codin: UTF-8 -*-
 
 import os
 import argparse
@@ -48,7 +48,7 @@ def build_mlp(
 	Returns:
 					The tensor output of the network
 
-	g: Implement this function. This will be similar to the linear
+	Implement this function. This will be similar to the linear
 	model you implemented for Assignment 2.
 	"tf.layers.dense" and "tf.variable_scope" may be helpful.
 
@@ -140,7 +140,6 @@ class PG(object):
 		Args:
 						scope: the scope of the neural network
 
-		g:
 		Discrete case:
 				action_logits: the logits for each action
 						HINT: use build_mlp, check self.config for layer_size and
@@ -225,7 +224,16 @@ class PG(object):
 		HINT: Use self.lr, and minimize self.loss
 		"""
 		######################################################
-		self.train_op = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
+		# The if is important: do not create 2 train_op on same loss otherwise it messes TF
+		if self.config.use_sgd is True:
+			self.sgd_lr_placeholder = tf.placeholder(dtype=tf.float32)
+			sgd_optimizer = tf.train.GradientDescentOptimizer(learning_rate = self.sgd_lr_placeholder)
+			self.sgd_train_op = sgd_optimizer.minimize(self.loss, var_list=core.get_vars(scope='policy_network'))
+			#self.sgd_train_op = sgd_optimizer.minimize(self.loss)
+			print("LR={}".format(self.lr))
+			self.sgd_lr = copy.copy(self.lr) # start lr
+		else:
+			self.train_op = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
 		#######################################################
 
 	def add_baseline_op(self, scope = "baseline"):
@@ -240,7 +248,7 @@ class PG(object):
 		Args:
 				scope: the scope of the baseline network
 
-		g: Set the following fields
+		Set the following fields
 				self.baseline
 						HINT: use build_mlp, the network is the same as policy network
 						check self.config for n_layers and layer_size
@@ -265,7 +273,7 @@ class PG(object):
 		self.update_baseline_op = tf.train.AdamOptimizer(self.lr).minimize(loss)
 		#######################################################
 	
-	def add_backtracking(self, pi_name='policy_network'):
+	def add_set_get_pi_params(self, pi_name='policy_network'):
 		self.pi_params = core.get_vars(scope=pi_name)
 		print(self.pi_params)
 		self.gradient = core.flat_grad(self.loss, self.pi_params)
@@ -275,11 +283,6 @@ class PG(object):
 		# Symbols for getting and setting params
 		self.get_pi_params = core.flat_concat(self.pi_params)
 		self.set_pi_params = core.assign_params_from_flat(self.v_ph, self.pi_params)
-
-		self.sgd_lr_placeholder = tf.placeholder(dtype=tf.float32)
-		sgd_optimizer = tf.train.GradientDescentOptimizer(learning_rate = self.sgd_lr_placeholder)
-		self.sgd_train_op = sgd_optimizer.minimize(self.loss, var_list=core.get_vars(scope=pi_name))
-		self.sgd_lr = self.lr # start lr
 
 	def build(self):
 		"""
@@ -302,7 +305,7 @@ class PG(object):
 		if self.config.use_baseline:
 			self.add_baseline_op()
 
-		self.add_backtracking(pi_name='policy_network')
+		self.add_set_get_pi_params(pi_name='policy_network')
 
 	def initialize(self):
 		"""
@@ -461,7 +464,7 @@ class PG(object):
 
 		where T is the last timestep of the episode.
 
-		g: compute and return G_t for each timestep. Use self.config.gamma.
+		compute and return G_t for each timestep. Use self.config.gamma.
 		"""
 
 		all_returns = []
@@ -469,7 +472,7 @@ class PG(object):
 			rewards = path["reward"]
 			#######################################################
 			n_rewards = len(rewards)
-			returns = [] # g
+			returns = []
 			for i in range(n_rewards):
 				cumulative_reward = rewards[i]
 				weight = self.config.gamma
@@ -497,7 +500,6 @@ class PG(object):
 		and normalizing the advantages if necessary.
 		If neither of these options are True, just return returns.
 
-		g:
 		If config.use_baseline = False and config.normalize_advantage = False,
 		then the "advantage" is just going to be the returns (and not actually
 		an advantage).
@@ -530,7 +532,7 @@ class PG(object):
 		Args:
 						returns: Returns from get_returns
 						observations: observations
-		g:
+
 			apply the baseline update op with the observations and the returns.
 			HINT: Run self.update_baseline_op with self.sess.run(...)
 		"""
@@ -554,6 +556,7 @@ class PG(object):
 		self.init_averages()
 		scores_eval = [] # list of scores computed at iteration time
 
+		previous_avg_reward = -np.Inf
 		for t in range(self.config.num_batches):
 
 			# collect a minibatch of samples
@@ -571,6 +574,7 @@ class PG(object):
 				self.update_baseline(returns, observations)
 
 			if self.config.use_sgd is True:
+				print("USE SGD")
 				feed_dict={ self.observation_placeholder : observations,
 							self.action_placeholder : actions,
 							self.sgd_lr_placeholder : self.sgd_lr,
@@ -579,14 +583,12 @@ class PG(object):
 				old_params = self.sess.run(self.get_pi_params)
 
 				# 1 time is enough even if policy is stochastic: checks ok ... results are very consistent
-				start = timer()
 				old_actions = self.sess.run(self.sampled_action, feed_dict={self.observation_placeholder : observations})
-				end = timer() # Takes 17 seconds on my setup
-				print("...Time to sample actions: {}".format(end-start))
 
 				start = timer()
 				old_penalty = env.penalty(observations, old_actions)
 				end = timer() # Takes 17 seconds on my setup
+
 				print("...Time to compute penalty: {}".format(end-start))
 				print("...len: {} {} {}".format(len(old_params), len(observations), len(old_actions)))
 				print("...old_penalty {}".format(old_penalty))
@@ -595,27 +597,26 @@ class PG(object):
 				self.sess.run(self.sgd_train_op, feed_dict)
 
 				new_actions = self.sess.run(self.sampled_action, feed_dict={self.observation_placeholder : observations})
-				new_penalty = env.penalty(observations, new_actions)
-				print("...new_penalty {}".format(new_penalty))
+				sgd_penalty = env.penalty(observations, new_actions)
+				print("...sgd_penalty {}".format(sgd_penalty))
 
 				sgd_params = self.sess.run(self.get_pi_params)
-
-				#xxx_params = old_params - self.sgd_lr * sgd_gradient
-				#print(np.linalg.norm(xxx_params - sgd_params, ord=2))
+				xxx_params = old_params - self.sgd_lr * sgd_gradient
+				print(np.linalg.norm(xxx_params - sgd_params, ord=2))
 				#assert 2==1 # checks ongoing
 
-				if new_penalty > old_penalty:
+				if sgd_penalty > old_penalty:
 					start = timer()
 					backtrack_lr = copy.copy(self.sgd_lr)
 					for i in range(self.config.backtrack_iters):
 						backtrack_lr *= self.config.backtrack_decay
 						self.sess.run(self.set_pi_params, feed_dict={self.v_ph: old_params - backtrack_lr * sgd_gradient})
 						new_actions = self.sess.run(self.sampled_action, feed_dict={self.observation_placeholder : observations})
-						new_penalty = env.penalty(observations, new_actions)
-						print("...BACKTRACKING new_penalty {}".format(new_penalty))
+						bt_penalty = env.penalty(observations, new_actions)
+						print("...BACKTRACKING bt_penalty {}".format(bt_penalty))
 
-						if new_penalty < old_penalty:
-							print("BACKTRACKING: improvement at iter {} new_penalty={} old_penalty={}".format(i, new_penalty, old_penalty))
+						if bt_penalty < sgd_penalty:
+							print("BACKTRACKING: improvement at iter {} bt_penalty={} sgd_penalty={}".format(i, bt_penalty, sgd_penalty))
 							break
 
 						if i==self.config.backtrack_iters-1:
@@ -625,6 +626,7 @@ class PG(object):
 					print("...Backtracking Time: {}".format(end-start))
 
 			else:
+				print("USE ADAM")
 				self.sess.run(self.train_op, feed_dict={
 											self.observation_placeholder : observations,
 											self.action_placeholder : actions,
@@ -640,6 +642,11 @@ class PG(object):
 			sigma_reward = np.sqrt(np.var(total_rewards) / len(total_rewards))
 			msg = "Average reward: {:04.2f} +/- {:04.2f}".format(avg_reward, sigma_reward)
 			self.logger.info(msg)
+
+			#if self.config.use_sgd is True and avg_reward < previous_avg_reward:
+			#	self.sgd_lr = self.sgd_lr * 0.9
+			#	print("Decay SGD LR to {}".format(self.sgd_lr))
+			#previous_avg_reward = avg_reward
 
 			if	self.config.record and (last_record > self.config.record_freq):
 				self.logger.info("Recording...")

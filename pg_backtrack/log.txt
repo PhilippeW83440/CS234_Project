@@ -1,0 +1,191 @@
+USE SGD
+...Time to compute penalty: 16.889947237999877
+...len: 3585 50000 50000
+...old_penalty 254364.97229489803
+...new_penalty 251019.96515231923
+2.3374989e-09
+[2019-03-17 13:32:36,153] Average reward: -141.71 +/- 17.05
+USE SGD
+...Time to compute penalty: 16.866529459000958
+...len: 3585 50000 50000
+...old_penalty 211183.4169817675
+...new_penalty 208755.81253245551
+5.599201e-09
+[2019-03-17 13:33:49,590] Average reward: 226.55 +/- 13.17
+USE SGD
+...Time to compute penalty: 16.904106171999956
+...len: 3585 50000 50000
+...old_penalty 185975.01830893548
+...new_penalty 178143.98964573813
+2.9890003e-08
+[2019-03-17 13:35:03,777] Average reward: 402.36 +/- 10.53
+USE SGD
+...Time to compute penalty: 17.046126560999255
+...len: 3585 50000 50000
+...old_penalty 129265.20331371795
+...new_penalty 126329.8374404098
+2.3658998e-08
+[2019-03-17 13:36:17,457] Average reward: 690.45 +/- 4.95
+USE SGD
+...Time to compute penalty: 16.98928147299921
+...len: 3585 50000 50000
+...old_penalty 114378.26993648197
+...new_penalty 107056.51316093771
+1.8813353e-08
+[2019-03-17 13:37:31,480] Average reward: 738.66 +/- 4.11
+USE SGD
+...Time to compute penalty: 16.838121449000027
+...len: 3585 50000 50000
+...old_penalty 90781.2512615209
+...new_penalty 84717.80449202738
+4.317735e-08
+[2019-03-17 13:38:45,100] Average reward: 821.21 +/- 1.91
+USE SGD
+...Time to compute penalty: 16.93983847099844
+...len: 3585 50000 50000
+...old_penalty 76962.54103231437
+...new_penalty 81138.71784439661
+2.3790166e-08
+[2019-03-17 13:39:59,044] Average reward: 858.25 +/- 1.27
+USE SGD
+...Time to compute penalty: 17.22892642700026
+...len: 3585 50000 50000
+...old_penalty 88096.54062805927
+...new_penalty 79674.89307351013
+3.6737408e-08
+[2019-03-17 13:41:13,606] Average reward: 824.70 +/- 2.21
+
+
+
+
+2019-03-17 13:49:10.783831: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1041] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 10134 MB memory) -> physical GPU (device: 0, name: GeForce GTX 1080 Ti, pci bus id: 0000:01:00.0, compute capability: 6.1)
+USE SGD
+...Time to compute penalty: 17.085632485999668
+...len: 3585 50000 50000
+...old_penalty 336417.8614740114
+...new_penalty 334949.73855851486
+3.7599303e-08
+[2019-03-17 13:50:25,216] Average reward: -1040.31 +/- 20.82
+USE SGD
+...Time to compute penalty: 17.00454245900073
+...len: 3585 50000 50000
+...old_penalty 289900.5466802028
+...new_penalty 290256.6543109805
+2.143303e-08
+...BACKTRACKING new_penalty 290186.51559140626
+...BACKTRACKING new_penalty 290017.45354443
+...BACKTRACKING new_penalty 290085.7553407084
+...BACKTRACKING new_penalty 289970.86663468217
+...BACKTRACKING new_penalty 289969.05899895995
+...Backtracking Time: 84.95027981299972
+[2019-03-17 13:53:03,906] Average reward: -463.66 +/- 19.22
+USE SGD
+...Time to compute penalty: 16.92198472600103
+...len: 3585 50000 50000
+...old_penalty 287372.53538363037
+...new_penalty 281848.3513498004
+2.7676293e-08
+[2019-03-17 13:54:17,663] Average reward: -429.29 +/- 19.01
+USE SGD
+...Time to compute penalty: 16.89454812799886
+...len: 3585 50000 50000
+...old_penalty 179390.63195596746
+...new_penalty 174483.65679330286
+1.5792265e-08
+[2019-03-17 13:55:32,035] Average reward: 435.44 +/- 10.01
+USE SGD
+...Time to compute penalty: 16.716648517998692
+...len: 3585 50000 50000
+...old_penalty 138434.05801718275
+...new_penalty 118400.39956932502
+3.188151e-08
+[2019-03-17 13:56:45,358] Average reward: 635.01 +/- 6.67
+USE SGD
+...Time to compute penalty: 16.689043047999803
+...len: 3585 50000 50000
+...old_penalty 76145.99895412741
+...new_penalty 69149.3353684243
+3.805229e-08
+[2019-03-17 13:57:58,361] Average reward: 861.38 +/- 1.21
+USE SGD
+...Time to compute penalty: 16.831385958999817
+...len: 3585 50000 50000
+...old_penalty 64707.98665923204
+...new_penalty 62294.736095961925
+4.0144553e-08
+[2019-03-17 13:59:12,144] Average reward: 890.28 +/- 0.78
+USE SGD
+...Time to compute penalty: 16.695401887000116
+...len: 3585 50000 50000
+...old_penalty 58453.82298628149
+...new_penalty 65920.02438216525
+4.975197e-08
+...BACKTRACKING new_penalty 64411.33943322328
+...BACKTRACKING new_penalty 63271.61342154221
+...BACKTRACKING new_penalty 62291.51610624469
+...BACKTRACKING new_penalty 61613.2774989349
+...BACKTRACKING new_penalty 60957.73322461742
+...Backtracking Time: 83.63320750599996
+[2019-03-17 14:01:49,237] Average reward: 901.15 +/- 0.73
+USE SGD
+...Time to compute penalty: 17.00586302800002
+...len: 3585 50000 50000
+...old_penalty 70981.86698008132
+...new_penalty 68113.1254738886
+4.8082523e-08
+[2019-03-17 14:03:03,136] Average reward: 867.96 +/- 1.18
+USE SGD
+...Time to compute penalty: 16.842592446000708
+...len: 3585 50000 50000
+...old_penalty 65324.319399852306
+...new_penalty 56241.32857337591
+3.20994e-08
+[2019-03-17 14:04:16,593] Average reward: 883.47 +/- 1.04
+USE SGD
+...Time to compute penalty: 16.835240168000382
+...len: 3585 50000 50000
+...old_penalty 56909.312991568564
+...new_penalty 44160.83284962004
+3.2185547e-08
+[2019-03-17 14:05:30,124] Average reward: 911.93 +/- 0.61
+USE SGD
+...Time to compute penalty: 16.643742689000646
+...len: 3585 50000 50000
+...old_penalty 44930.99346982536
+...new_penalty 34894.274636975344
+3.762783e-08
+[2019-03-17 14:06:43,786] Average reward: 938.14 +/- 0.48
+USE SGD
+...Time to compute penalty: 16.714347118999285
+...len: 3585 50000 50000
+...old_penalty 36735.1087592924
+...new_penalty 20891.608836142586
+5.497595e-08
+[2019-03-17 14:07:57,452] Average reward: 952.28 +/- 0.45
+
+
+
+
+
+2019-03-17 14:09:56.449680: I tensorflow/core/common_runtime/gpu/gpu_device.cc:930] 0:   N 
+2019-03-17 14:09:56.449911: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1041] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 10134 MB memory) -> physical GPU (device: 0, name: GeForce GTX 1080 Ti, pci bus id: 0000:01:00.0, compute capability: 6.1)
+USE SGD
+...Time to compute penalty: 17.248701581000205
+...len: 3585 50000 50000
+...old_penalty 326022.49036702036
+...sgd_penalty 322133.54152824637
+2.6885873e-08
+[2019-03-17 14:11:11,334] Average reward: -1881.22 +/- 10.82
+USE SGD
+...Time to compute penalty: 17.107568800998706
+...len: 3585 50000 50000
+...old_penalty 316778.5486891245
+...sgd_penalty 354335.08946673636
+4.8265363e-08
+...BACKTRACKING bt_penalty 348790.0466048867
+BACKTRACKING: improvement at iter 0 bt_penalty=348790.0466048867 sgd_penalty=354335.08946673636
+...Backtracking Time: 17.31221569799891
+[2019-03-17 14:12:42,822] Average reward: -1773.23 +/- 9.44
+
+
+
