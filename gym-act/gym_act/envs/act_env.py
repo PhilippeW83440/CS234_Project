@@ -256,7 +256,7 @@ class ActEnv(gym.Env):
 	# if self.discrete
 	AVAIL_ACCEL = [-2., -1., 0., +1., +2.]
 
-	def __init__(self, nobjs=2, driver_model='cv', max_accel=2, dist_collision=10, reward_shaping=True, discrete=False):	 
+	def __init__(self, nobjs=2, driver_model='cv', max_accel=2, dist_collision=10, reward_shaping=False, discrete=False, pi_type='dnn'):	 
 		print("ACT (Anti Collision Tests) with {} cars using {} driver model".format(nobjs, driver_model))
 		self.nobjs = nobjs
 		self.discrete = discrete
@@ -269,6 +269,7 @@ class ActEnv(gym.Env):
 		self.max_accel = max_accel
 		self.dist_collision = dist_collision
 		self.reward_shaping = reward_shaping
+		self.pi_type = 'dnn'
 		
 		if discrete is True:
 			self.action_space = spaces.Discrete(5)
@@ -326,7 +327,11 @@ class ActEnv(gym.Env):
 			
 		self.s = state
 		
-		return self._relative_coords(self.s)
+		if self.pi_type == 'cnn':
+			return self.render(mode='cnn')
+		else:
+			return self._relative_coords(self.s)
+		#return self.s
 		#return np.array([self.penalty_s(self.s)])
 		#return self._reduced_state(self.s)
 
@@ -418,14 +423,16 @@ class ActEnv(gym.Env):
 		color_text = (0,0,0)
 		img = np.zeros([250, 250, 3],dtype=np.uint8)
 		img.fill(255) # or img[:] = 255
-		cv2.putText(img, 'Anti Collision Tests', (pos_left, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
+		if mode != 'cnn':
+			cv2.putText(img, 'Anti Collision Tests', (pos_left, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
 		
 		x = int(round(self.s[0])); y = int(round(self.s[1]))
 		vx = int(round(self.s[2])); vy = int(round(self.s[3])); v = int(math.sqrt(vx**2 + vy**2)*3.6)
 		color = (0, 0, 255) # blue
 		cv2.circle(img, (x, y), 2, color, -1)
 		draw_arrow(img, (int(x), int(y)), (int(x+vx), int(y+vy)), color)		
-		cv2.putText(img, str(v) + ' kmh', (x+vx+5, y+vy), cv2.FONT_HERSHEY_SIMPLEX, 0.25, color)
+		if mode != 'cnn':
+			cv2.putText(img, str(v) + ' kmh', (x+vx+5, y+vy), cv2.FONT_HERSHEY_SIMPLEX, 0.25, color)
 		
 		for i in range(self.nobjs):
 			if i == self.smallest_TTC_obj:
@@ -437,17 +444,18 @@ class ActEnv(gym.Env):
 			vx = int(round(self.s[idx+2])); vy = int(round(self.s[idx+3])); v = int(math.sqrt(vx**2 + vy**2)*3.6)
 			cv2.circle(img, (x, y), 2, color, -1)
 			draw_arrow(img, (int(x), int(y)), (int(x+vx), int(y+vy)), color)		
-			cv2.putText(img, str(v) + ' kmh', (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.25, color_text)
+			if mode != 'cnn':
+				cv2.putText(img, str(v) + ' kmh', (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.25, color_text)
 		
 		if self.reward is not None:
 			str_reward = "R_com %.2f , R_eff %.2f R_saf %.2f" % (self.r_comfort, self.r_efficiency, self.r_safety)
-			cv2.putText(img, str_reward, (pos_left, 205), cv2.FONT_HERSHEY_SIMPLEX, 0.25, color_text)
-		
 			str_safety = "TTC %.2f seconds, D_min %.2f meters" % (self.smallest_TTC, self.dist_nearest_obj)
-			cv2.putText(img, str_safety, (pos_left, 215), cv2.FONT_HERSHEY_SIMPLEX, 0.25, color_text)
-			
 			str_step = "Step %d with action %d reward %.2f" % (self.steps, self.action, self.reward)
-			cv2.putText(img, str_step, (pos_left, 225), cv2.FONT_HERSHEY_SIMPLEX, 0.25, (0,0,255))
+
+			if mode != 'cnn':
+				cv2.putText(img, str_reward, (pos_left, 205), cv2.FONT_HERSHEY_SIMPLEX, 0.25, color_text)
+				cv2.putText(img, str_safety, (pos_left, 215), cv2.FONT_HERSHEY_SIMPLEX, 0.25, color_text)
+				cv2.putText(img, str_step, (pos_left, 225), cv2.FONT_HERSHEY_SIMPLEX, 0.25, (0,0,255))
 		
 		#img = cv2.resize(img, None, fx=20, fy=20)
 		#img = cv2.resize(img,(2500, 2500))
@@ -478,17 +486,17 @@ class ActEnv(gym.Env):
 		
 	#state, reward, done, info = env.step(action)
 	def step(self, a):
-		assert self.action_space.contains(a), "%r (%s) invalid action"%(a, type(a))
+		#assert self.action_space.contains(a), "%r (%s) invalid action"%(a, type(a))
 
 		if self.discrete is True:
 			action = self.AVAIL_ACCEL[a]
 		else:
 			action = copy.copy(a)
 
-		#if action > self.max_accel:
-		#	action = self.max_accel
-		#elif action < -self.max_accel:
-		#	action = -self.max_accel
+		if action > self.max_accel:
+			action = self.max_accel
+		elif action < -self.max_accel:
+			action = -self.max_accel
 
 		reward = -1; done = False; info = {}		
 		sp = copy.copy(self.s)
@@ -533,7 +541,11 @@ class ActEnv(gym.Env):
 			else:
 				info = "success"
 				
-		return self._relative_coords(self.s), reward, done, {} # TEMP just for HW3-PG video recordiong info
+		#return self.s, reward, done, {} # TEMP just for HW3-PG video recordiong info
+		if self.pi_type == 'cnn':
+			return self.render(mode='cnn'), reward, done, {} # TEMP just for HW3-PG video recordiong info
+		else:
+			return self._relative_coords(self.s), reward, done, {} # TEMP just for HW3-PG video recordiong info
 		#return np.array([self.penalty_s(self.s)]), reward, done, {}
 		#return get_all_TTC(self.s), reward, done, {}
 		#return self._reduced_state(self.s), reward, done, {}
