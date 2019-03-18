@@ -320,6 +320,9 @@ s.
  is expressed as a mathematical expression that is differentiable.
  So all the methods dealing with Lagrangian formulation or Lyapunov stability
  analysis are not applicable to our case.
+ There tend to be lots of mathematical derivations in most of the papers,
+ but ultimately these methods are applicable in restricted cases and usualy
+ tested on relativelly toy constraints (like a torque constraint).
  In some cases, when the constraint is not differentiable, a differentiable
  model is learned to best match the original constraint.
  The problem we are considering here, in its most generic formulation, is
@@ -348,8 +351,15 @@ We developped an openai gym, module that enable to experiment with some
 What did you do?
 \end_layout
 
+\begin_layout Subsubsection
+Implementation of an openai gym module
+\end_layout
+
 \begin_layout Standard
 We developped an openai gym test setup for experimentations.
+ We used to have some early code in Julia used in a previous Stanford CS238
+ course but we migrated everything to Python and properly developped a generic
+ easy to instal and run open ai gym module.
  It is a test scene where a car, which we call the ego-car, has to drive
  from point A to point B as fast as possible while othe cars are crossing
  its path.
@@ -363,20 +373,118 @@ We developped an openai gym test setup for experimentations.
 \end_inset
 
 ) and safely (while minimizing the percentage of collisions).
+ The problem is setup as a MDP with:
+\end_layout
+
+\begin_layout Itemize
+States: different variants will be tested, but as a starting point consider
+ 
+\begin_inset Formula $\ensuremath{\{(x,y,v_{x},v_{y})_{ego},{(x,y,v_{x},v_{y})_{obj}}_{1..n}\}}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Actions: longitudinal accelerations 
+\begin_inset Formula $a_{longi}\in\left[-2ms^{-2};+2ms^{-2}\right]$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Rewards: 
+\begin_inset Formula $-1$
+\end_inset
+
+for every timestep,
+\begin_inset Formula $-1000$
+\end_inset
+
+ for a collision terminal state, 
+\begin_inset Formula $+1000$
+\end_inset
+
+ when goal is reahced terminal state
+\end_layout
+
+\begin_layout Itemize
+Model-Free setting: the ego-vehicle does not know the driver model of other
+ cars, it could be CV, Basic or IDM.
+\end_layout
+
+\begin_layout Standard
+An openai gym package has beeen developed and can be easilly used with any
+ existing RL framework.
+ It supports all the standard openai gym API step, reset, render etc and
+ custom ones have been added to experiment with safety constraints and penalties.
 \end_layout
 
 \begin_layout Subsubsection
-What experiments did you run, what did you find out
+Experiments with legacy framework and setups: HW3-PG, spinup VPG, PPG, TRPO,
+ DDPG, TD3, SAC
+\end_layout
+
+\begin_layout Standard
+Default setting.
+ Test on Act-v0.
+ TD3 performs best.
+ Explain why DDPG/TD3 are interesting (deterministic policy, off-policy)
 \end_layout
 
 \begin_layout Subsubsection
-It's okay if your new idea wasn't better.
+Experiments on different state space representations and how it scale
+\end_layout
+
+\begin_layout Itemize
+With vectorized absolute state space representation
+\end_layout
+
+\begin_layout Itemize
+With vectorized relative state space representation
+\end_layout
+
+\begin_layout Itemize
+With vectorized reduced state space representation
+\end_layout
+
+\begin_layout Itemize
+With image state space representation
+\end_layout
+
+\begin_layout Subsubsection
+Implementation and Experiments on how to handle complex non differentiable
+ safety constraints and penalties
+\end_layout
+
+\begin_layout Itemize
+Reward shaping with a penalty term
+\end_layout
+
+\begin_layout Itemize
+Line search based on penalty constraint
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+What experiments did you run, what did you find out.
+ It's okay if your new idea wasn't better.
  But if so, it's important to have ideas about why it didn't work.
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 What are next steps / open questions that if you were to continue working,
  you would do?
+\end_layout
+
+\begin_layout Itemize
+Curse of dimensinality: more efficient state space representation
+\end_layout
+
+\begin_layout Itemize
+Line search is slow: learn where to search first ? 
 \end_layout
 
 \begin_layout Section
