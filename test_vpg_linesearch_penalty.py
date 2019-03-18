@@ -9,14 +9,14 @@ from spinup.utils.mpi_tools import mpi_fork, mpi_avg, proc_id, mpi_statistics_sc
 import sys; sys.path.append("/home/vaishali/CS234_Project/gym-act")
 import gym_act
 
-env='Act10-v0'
+env='ActIdm10-v0'
 #env='HalfCheetah-v1'
 layer_size=324
 layers=4
 gamma=0.9
 seed=0
 epochs=100
-steps=5000
+steps=1000
 EPS = 1e-8
 exp_name='vpg_linesearch_penalty'
 
@@ -105,7 +105,7 @@ Vanilla Policy Gradient
 def vpg_linesearch_penalty(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0, 
         steps_per_epoch=4000, epochs=50, gamma=0.99, pi_lr=3e-3,
         vf_lr=1e-3, train_v_iters=80, lam=0.97, max_ep_len=1000,
-        backtrack_iters=100, 
+        backtrack_iters=500, 
         logger_kwargs=dict(), save_freq=10):
     """
 
@@ -272,8 +272,8 @@ def vpg_linesearch_penalty(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs
             pi_l_new = sess.run([pi_loss], feed_dict=inputs)
             if new_penalty < old_penalty:
             #if pi_l_new <= pi_l_old:
-              print("Accepting params at iter {} pi_l_new={} pi_l_old={}".format(j, pi_l_new, pi_l_old))
-              print("Accepting params at iter {} new_penalty={} old_penalty={}".format(j, new_penalty, old_penalty))
+              #print("Accepting params at iter {} pi_l_new={} pi_l_old={}".format(j, pi_l_new, pi_l_old))
+              #print("Accepting params at iter {} new_penalty={} old_penalty={}".format(j, new_penalty, old_penalty))
               save_params = sess.run(get_pi_params)
               sess.run(set_pi_params, feed_dict={v_ph: save_params})
               #break

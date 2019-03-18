@@ -9,7 +9,7 @@ from spinup.utils.mpi_tools import mpi_fork, mpi_avg, proc_id, mpi_statistics_sc
 import sys; sys.path.append("/home/vaishali/CS234_Project/gym-act")
 import gym_act
 
-env='Act10-v0'
+env='ActIdm10-v0'
 #env='HalfCheetah-v1'
 layer_size=324
 layers=4
