@@ -577,16 +577,6 @@ sac-2l-Act4
 \end_layout
 
 \end_deeper
-\begin_layout Itemize
-With image state space representation: could be interesting as independently
- of the number of cars it will be 
-\begin_inset Formula $\mathbb{R}^{3}$
-\end_inset
-
- with e.g.
- 4 stacked images
-\end_layout
-
 \begin_layout Standard
 \align center
 \begin_inset Graphics
@@ -599,13 +589,50 @@ With image state space representation: could be interesting as independently
 
 \end_layout
 
+\begin_layout Itemize
+With image state space representation: could be interesting as independently
+ of the number of cars it will be 
+\begin_inset Formula $\mathbb{R}^{3}$
+\end_inset
+
+ with e.g.
+ 4 stacked images
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Tests done with image erpresentation 
+\begin_inset Formula $(250,250,3)$
+\end_inset
+
+; training is much slower ; reward around 250 for ego+2cars; reward at -1000
+ for ego+10 cars
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Now an interesting case: sac with a small change in the state space representati
+on.
+ In both cases we use relative coordinates for the cars but in one case
+ we have 1 extra information concerning the ego car with its state vector.
+ In the later case we get the worst results: cf orange curve below
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename img/benchmark_sac.png
+	lyxscale 40
+	scale 40
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsubsection
 Implementation and Experiments on how to handle complex non differentiable
  safety constraints and penalties
-\end_layout
-
-\begin_layout Itemize
-Reward shaping with a penalty term
 \end_layout
 
 \begin_layout Itemize
