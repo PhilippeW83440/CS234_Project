@@ -159,6 +159,18 @@ Control: the planned trajectory is followed as close as possible taking
 \end_layout
 
 \begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename img/pipeline.png
+	lyxscale 30
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 We focus on the Planning module.
  This module is typicaly further decomposed into 3 sub-modules:
 \end_layout
@@ -179,6 +191,18 @@ A decision making module: the decisions are typically abstract and higher
 \begin_layout Enumerate
 A motion planning module: based an above higher level decision, a trajectory
  will be planned
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename img/urban_lidar.png
+	lyxscale 50
+	scale 50
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -373,7 +397,23 @@ We developped an openai gym test setup for experimentations.
 \end_inset
 
 ) and safely (while minimizing the percentage of collisions).
- The problem is setup as a MDP with:
+ 
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename img/act_env.png
+	lyxscale 30
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The problem is setup as a MDP with:
 \end_layout
 
 \begin_layout Itemize
@@ -422,15 +462,27 @@ An openai gym package has beeen developed and can be easilly used with any
 \end_layout
 
 \begin_layout Subsubsection
-Experiments with legacy framework and setups: HW3-PG, spinup VPG, PPG, TRPO,
- DDPG, TD3, SAC
+Policy Gradients based algorithms benchmark: VPG, PPO, TRPO, DDPG, TD3,
+ SAC
 \end_layout
 
 \begin_layout Standard
 Default setting.
  Test on Act-v0.
- TD3 performs best.
- Explain why DDPG/TD3 are interesting (deterministic policy, off-policy)
+ SAC performs best.
+ 
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename img/benchmark.png
+	lyxscale 40
+	scale 40
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsubsection
@@ -464,6 +516,125 @@ Reward shaping with a penalty term
 
 \begin_layout Itemize
 Line search based on penalty constraint
+\end_layout
+
+\begin_layout Standard
+Backtracking Line Search over a batch of 50000 states tested over different
+ policy networks 
+\begin_inset Formula $\pi_{\theta}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where 
+\begin_inset Formula $\theta\gets\theta+\alpha_{bls}\nabla\pi_{\theta}$
+\end_inset
+
+ is tested for different step sizes with 
+\begin_inset Formula $\alpha_{bls}<\alpha_{sgd}$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+So we have a 2-stages Gradient Descent, with 2 interleaved steps:
+\end_layout
+
+\begin_layout Itemize
+The first step deals with a differentiable function trying to optimize 
+\begin_inset Formula $Q(s,a)$
+\end_inset
+
+ in expectation
+\end_layout
+
+\begin_layout Itemize
+While the 2nd stage is refining the step size 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ over a non differentiable safety penalty to search for safer policy networks.
+\end_layout
+
+\begin_layout Standard
+By definition a lot of states are unsafe.
+ They correspond to a predicted 
+\begin_inset Formula $minTTC<10$
+\end_inset
+
+ seconds.
+ we are trying to come up with a policy that pushes us towards safer states
+ with bounded accelerations at every time step or that ensures we remain
+ in safe states if this is already the case.
+ But we can not move in a single step from an unsafe state to a safer state.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Time to compute penalty: 17.25
+\end_layout
+
+\begin_layout Plain Layout
+
+old_penalty 326022.49
+\end_layout
+
+\begin_layout Plain Layout
+
+sgd_penalty 322133.54
+\end_layout
+
+\begin_layout Plain Layout
+
+Average reward: -1881.22 +/- 10.82
+\end_layout
+
+\begin_layout Plain Layout
+
+Time to compute penalty: 17.11
+\end_layout
+
+\begin_layout Plain Layout
+
+old_penalty 316778.55
+\end_layout
+
+\begin_layout Plain Layout
+
+sgd_penalty 354335.09
+\end_layout
+
+\begin_layout Plain Layout
+
+Backtracking bt_penalty 348790.05
+\end_layout
+
+\begin_layout Plain Layout
+
+Backtracking: improvement at iter 0 bt_penalty=348790.05 sgd_penalty=354335.09
+\end_layout
+
+\begin_layout Plain Layout
+
+Backtracking Time: 17.31
+\end_layout
+
+\begin_layout Plain Layout
+
+Average reward: -1773.23 +/- 9.44
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
