@@ -39,7 +39,7 @@ def get_dist_nearest_obj(s):
 			num_nearest_obj = n
 		idx += 4
 	
-	return dist_nearest_obj
+	return dist_nearest_obj, num_nearest_obj
 
 def get_dist_to_goal(s, goal):
 	return get_dist(s[0:4], goal)
@@ -248,6 +248,10 @@ def draw_arrow(image, p, q, color, arrow_magnitude=5, thickness=1, line_type=4, 
 
 
 class ActEnv(gym.Env):
+	metadata = {
+		'render.modes': ['human', 'rgb_array'],
+		'video.frames_per_second' : 5
+	}
 
 	# if self.discrete
 	AVAIL_ACCEL = [-2., -1., 0., +1., +2.]
@@ -271,8 +275,11 @@ class ActEnv(gym.Env):
 		else:
 			self.action_space = spaces.Box(low=-self.max_accel, high=self.max_accel, shape=(1,))
 		# 1+nobjs: x,y,vx,vy with x,y in [0,200] and vx,vy in [0,40]
-		self.observation_space = spaces.Box(low=0.0, high=200.0, shape=((1+nobjs)*4,))
-		#self.observation_space = spaces.Box(low=0.0, high=10.0, shape=(nobjs,)) # TTC for each car
+		#self.observation_space = spaces.Box(low=0.0, high=200.0, shape=((1+nobjs)*4,))
+		#self.observation_space = spaces.Box(low=0.0, high=100.0, shape=(nobjs,)) # TTC for each car
+		#self.observation_space = spaces.Box(low=0.0, high=10.0, shape=(1,)) # penalty
+		self.observation_space = spaces.Box(low=-200.0, high=200.0, shape=(nobjs*4,))
+		#self.observation_space = spaces.Box(low=-200.0, high=200.0, shape=(4,))
 		
 		self.seed()
 		self.reset()
@@ -320,7 +327,8 @@ class ActEnv(gym.Env):
 		self.s = state
 		
 		return self._relative_coords(self.s)
-		#return get_all_TTC(self.s)
+		#return np.array([self.penalty_s(self.s)])
+		#return self._reduced_state(self.s)
 
 	# we answer the question: what would be the penalty if we apply action on state
 	# but we do not store the new state sp
@@ -337,6 +345,7 @@ class ActEnv(gym.Env):
 		sp[0:4] = transition_ca(s, a)
 		
 		idx = 4
+		#idx = 0 for Vaishali code
 		for n in range(self.nobjs):
 			s_obj = state[idx:idx+4] # x,y,vx,vy
 			v_obj = math.sqrt(state[idx+2]**2 + state[idx+3]**2)
@@ -367,7 +376,7 @@ class ActEnv(gym.Env):
 	def _reward(self, s, a, sp):
 		# Keep track for visualization, plots ...
 		self.dist_to_goal = get_dist_to_goal(sp, self.goal)
-		self.dist_nearest_obj = get_dist_nearest_obj(sp)
+		self.dist_nearest_obj, _ = get_dist_nearest_obj(sp)
 		self.smallest_TTC, self.smallest_TTC_obj = get_smallest_TTC(sp)
 		#print("dist_to_goal {}".format(self.dist_to_goal));
 
@@ -403,7 +412,7 @@ class ActEnv(gym.Env):
 
 		return r_comfort + r_efficiency + r_safety
 		
-	def render(self):
+	def render(self, mode='human'):
 		pos_left = 40
 		#color_text = (255,255,255)
 		color_text = (0,0,0)
@@ -450,14 +459,36 @@ class ActEnv(gym.Env):
 			for i in range(4):
 				s_rel[(n+1)*4+i] = s_rel[(n+1)*4+i] - s_rel[i] 
 		s_rel[0:4] = 0
-		return s_rel
+		return s_rel[4:]
+
+	def _reduced_state(self, s):
+		# Vector of 5 floats: ego-relative [x,y,vx,vy,ttc] of most dangerous car
+		ttc, n = get_smallest_TTC(s)
+		# full of 0 if n==-1 or dangerous car
+		if n >= 0 and ttc < np.inf:
+			car = s[(n+1)*4:(n+1)*4+4]-s[0:4]
+			reduced_state = np.concatenate((car, [min(ttc, 200.0)] ))
+		else:
+			dist, n = get_dist_nearest_obj(s)
+			assert n>=0
+			car = s[(n+1)*4:(n+1)*4+4]-s[0:4]
+			reduced_state = np.concatenate((car, [ 200.0] ))
+		#print("reduced_state {}".format(reduced_state))
+		return reduced_state[0:4]
 		
 	#state, reward, done, info = env.step(action)
 	def step(self, a):
+		assert self.action_space.contains(a), "%r (%s) invalid action"%(a, type(a))
+
 		if self.discrete is True:
 			action = self.AVAIL_ACCEL[a]
 		else:
 			action = copy.copy(a)
+
+		#if action > self.max_accel:
+		#	action = self.max_accel
+		#elif action < -self.max_accel:
+		#	action = -self.max_accel
 
 		reward = -1; done = False; info = {}		
 		sp = copy.copy(self.s)
@@ -502,9 +533,10 @@ class ActEnv(gym.Env):
 			else:
 				info = "success"
 				
-		return self._relative_coords(self.s), reward, done, info
-		#return np.array([self.penalty_s(self.s)]), reward, done, info
-		#return get_all_TTC(self.s), reward, done, info
+		return self._relative_coords(self.s), reward, done, {} # TEMP just for HW3-PG video recordiong info
+		#return np.array([self.penalty_s(self.s)]), reward, done, {}
+		#return get_all_TTC(self.s), reward, done, {}
+		#return self._reduced_state(self.s), reward, done, {}
 	
 	def close(self):
 	   return 
