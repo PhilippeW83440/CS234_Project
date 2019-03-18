@@ -17,6 +17,12 @@ register(
 )
 
 register(
+    id='Act4-v0',
+    entry_point='gym_act.envs:ActEnv',
+    kwargs={'nobjs' : 4, 'driver_model' : 'cv'},
+)
+
+register(
     id='Act10-v0',
     entry_point='gym_act.envs:ActEnv',
     kwargs={'nobjs' : 10, 'driver_model' : 'cv'},
