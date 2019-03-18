@@ -269,7 +269,7 @@ class ActEnv(gym.Env):
 		self.max_accel = max_accel
 		self.dist_collision = dist_collision
 		self.reward_shaping = reward_shaping
-		self.pi_type = 'dnn'
+		self.pi_type = pi_type
 		
 		if discrete is True:
 			self.action_space = spaces.Discrete(5)
@@ -277,10 +277,10 @@ class ActEnv(gym.Env):
 			self.action_space = spaces.Box(low=-self.max_accel, high=self.max_accel, shape=(1,))
 		# 1+nobjs: x,y,vx,vy with x,y in [0,200] and vx,vy in [0,40]
 		#self.observation_space = spaces.Box(low=0.0, high=200.0, shape=((1+nobjs)*4,))
-		#self.observation_space = spaces.Box(low=0.0, high=100.0, shape=(nobjs,)) # TTC for each car
-		#self.observation_space = spaces.Box(low=0.0, high=10.0, shape=(1,)) # penalty
-		self.observation_space = spaces.Box(low=-200.0, high=200.0, shape=(nobjs*4,))
-		#self.observation_space = spaces.Box(low=-200.0, high=200.0, shape=(4,))
+		self.observation_space = spaces.Box(low=0.0, high=200.0, shape=(nobjs*4,))
+		#self.observation_space = spaces.Box(low=0.0, high=200.0, shape=(nobjs,)) # TTC for each car
+		#self.observation_space = spaces.Box(low=0, high=255, shape=(250,250,3), dtype=np.uint8)
+		#self.observation_space = spaces.Box(low=0, high=255, shape=(250,250,3))
 		
 		self.seed()
 		self.reset()
@@ -350,7 +350,6 @@ class ActEnv(gym.Env):
 		sp[0:4] = transition_ca(s, a)
 		
 		idx = 4
-		#idx = 0 for Vaishali code
 		for n in range(self.nobjs):
 			s_obj = state[idx:idx+4] # x,y,vx,vy
 			v_obj = math.sqrt(state[idx+2]**2 + state[idx+3]**2)
@@ -466,7 +465,7 @@ class ActEnv(gym.Env):
 		for n in range(self.nobjs):
 			for i in range(4):
 				s_rel[(n+1)*4+i] = s_rel[(n+1)*4+i] - s_rel[i] 
-		s_rel[0:4] = 0
+		#s_rel[0:4] = 0 we need it for later use
 		return s_rel[4:]
 
 	def _reduced_state(self, s):
@@ -486,7 +485,7 @@ class ActEnv(gym.Env):
 		
 	#state, reward, done, info = env.step(action)
 	def step(self, a):
-		#assert self.action_space.contains(a), "%r (%s) invalid action"%(a, type(a))
+		assert self.action_space.contains(a), "%r (%s) invalid action"%(a, type(a))
 
 		if self.discrete is True:
 			action = self.AVAIL_ACCEL[a]
