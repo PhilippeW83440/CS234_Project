@@ -1063,7 +1063,7 @@ With image state space representation: could be interesting as independently
 
 \begin_deeper
 \begin_layout Itemize
-Tests done with image erpresentation 
+Tests done with image representation 
 \begin_inset Formula $(250,250,3)$
 \end_inset
 
@@ -1097,25 +1097,118 @@ Implementation and Experiments on how to handle complex non differentiable
  safety constraints and penalties
 \end_layout
 
-\begin_layout Itemize
-Line search based on penalty constraint
+\begin_layout Standard
+So far the task appears to be very challenging to solve.
+ In one way the agent has to learn everything from scratch: whereas even
+ if we do not know exactly the driving behaviors of others, we have nevertheless
+ some knowledge about how they could drive.
+ In one way or the other, they have to comply to the law of physics relating
+ the evolution of position to speed which is related to the evolution of
+ acceleration.
+ How could we break down the task so that we do not try to learn everything
+ from scratch but leverage on some prior knowledge ? How could we enforce
+ safety rules without relying on any model ? 
 \end_layout
 
 \begin_layout Standard
-Backtracking Line Search over a batch of 50000 states tested over different
- policy networks 
+Considering the typical Planning and Decision Making part of an AD pipeline,
+ we usualy have two distinct modules: the prediciton module (trajectories
+ and behavior predictions) and the Decision Making module.
+ By construction the prediction module is providing some prior knowledge
+ to the Decision Making module.
+ In some ways the problem we have to solve probably best fit in between
+ a pure model based approach and a pure model free approach.
+ How could we combine the 2 approaches:
+\end_layout
+
+\begin_layout Itemize
+For safety reasons we have to define rules and to explicit models.
+ In case of an accident, a car manufacturer will have to explain why a decision
+ was taken, what was checked in terms of safety.
+ 
+\end_layout
+
+\begin_layout Itemize
+Model Free setting: because indeed by construction we are in a Model Free
+ setting.
+ We do not know the driver models of others.
+\end_layout
+
+\begin_layout Standard
+We are proposing here to experiment with an algorithm that is interleaving
+ a Model Free and a Model Based check and search refinement step: trying
+ to reinforce the findings of each others.
+ We start with a Vanilla Policy Gradient algorithm where at each Policy
+ Network parameters update (trying to improve over an objective in Expectation)
+ we will use the prior knowledge provided by the Prediction module.
+ Equiped with some driver model knwoledge e.g.
+ an estimated IDM driver model, depending on 5 parameters for which we have
+ different level of confidence, we will estimate by how far off we are w.r.t.
+ to our safety constraint, and perform a line search to improve over this
+ safety criteria.
+ As a reminder this safety criteria is potentially complex to compute and
+ non differentiable.
+ To account for uncertainty and to deal with the curse of dimensionality,
+ we typically have to sample from these driver models to come up with a
+ more robust safety evaluation.
+\end_layout
+
+\begin_layout Standard
+In terms of coding, we used as a starting point the code from CS234 programming
+ assignment 3 and modified it to incoporate a Backtracking line search method
+ at every Policy Network parameters update.
+ The experimental PG code is here: 
+\begin_inset CommandInset href
+LatexCommand href
+name "pg_backtrack"
+target "https://github.com/PhilippeW83440/CS234_Project/tree/master/pg_backtrack"
+literal "false"
+
+\end_inset
+
+ whereas the initial code is here 
+\begin_inset CommandInset href
+LatexCommand href
+name "HW3-PG"
+target "https://github.com/PhilippeW83440/CS234_Project/tree/master/pg"
+literal "false"
+
+\end_inset
+
+.
+ And the openai gym agent was modified to provide on request an evaluation
+ of the safety criteria: the code of the openai gym module is here 
+\begin_inset CommandInset href
+LatexCommand href
+name "openai gym module Act-v0 or Act10-v0"
+target "https://github.com/PhilippeW83440/CS234_Project/blob/master/gym-act/gym_act/envs/act_env.py"
+literal "false"
+
+\end_inset
+
+.
+ Note that in the case of these experiments, the sampling part is left for
+ further developments.
+\end_layout
+
+\begin_layout Standard
+The Backtracking Line Search is executed over a batch of 50000 states tested
+ over different policy networks 
 \begin_inset Formula $\pi_{\theta}$
 \end_inset
 
-
+.
+ The batch of 50000 states provides a rather large set of experiences to
+ test different Policy Networks.
+ 
 \end_layout
 
 \begin_layout Standard
-Where 
-\begin_inset Formula $\theta\gets\theta+\alpha_{bls}\nabla\pi_{\theta}$
+The Policy Network parameters, 
+\begin_inset Formula $\theta\gets\theta+\alpha_{bls}\nabla\pi_{\theta},$
 \end_inset
 
- is tested for different step sizes with 
+ are adjusted for different step sizes with 
 \begin_inset Formula $\alpha_{bls}<\alpha_{sgd}$
 \end_inset
 
@@ -1143,16 +1236,9 @@ While the 2nd stage is refining the step size
 \end_layout
 
 \begin_layout Standard
-By definition a lot of states are unsafe.
- They correspond to a predicted 
-\begin_inset Formula $minTTC<10$
-\end_inset
-
- seconds.
- we are trying to come up with a policy that pushes us towards safer states
- with bounded accelerations at every time step or that ensures we remain
- in safe states if this is already the case.
- But we can not move in a single step from an unsafe state to a safer state.
+The drawback of this method is that it slows down the training.
+ Computing the safety penalty over 50000 states requires around 17 seconds.
+ And we have to run this computation for every line serach point.
 \end_layout
 
 \begin_layout Standard
@@ -1177,7 +1263,7 @@ sgd_penalty 322133.54
 
 \begin_layout Plain Layout
 
-Average reward: -1881.22 +/- 10.82
+Average reward: -881.22 +/- 10.82
 \end_layout
 
 \begin_layout Plain Layout
@@ -1212,7 +1298,7 @@ Backtracking Time: 17.31
 
 \begin_layout Plain Layout
 
-Average reward: -1773.23 +/- 9.44
+Average reward: -773.23 +/- 9.44
 \end_layout
 
 \end_inset
